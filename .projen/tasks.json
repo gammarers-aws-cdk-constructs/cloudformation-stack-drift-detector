@@ -68,6 +68,52 @@
         }
       ]
     },
+    "bundle": {
+      "name": "bundle",
+      "description": "Prepare assets",
+      "steps": [
+        {
+          "spawn": "bundle:funcs/detector.lambda"
+        }
+      ]
+    },
+    "bundle:funcs/detector.lambda": {
+      "name": "bundle:funcs/detector.lambda",
+      "description": "Create a JavaScript bundle from src/funcs/detector.lambda.ts",
+      "steps": [
+        {
+          "execArgs": [
+            "esbuild",
+            "--bundle",
+            "src/funcs/detector.lambda.ts",
+            "--target=node22",
+            "--platform=node",
+            "--outfile=assets/funcs/detector.lambda/index.js",
+            "--tsconfig=test/tsconfig.json",
+            "--external:@aws-sdk/*"
+          ]
+        }
+      ]
+    },
+    "bundle:funcs/detector.lambda:watch": {
+      "name": "bundle:funcs/detector.lambda:watch",
+      "description": "Continuously update the JavaScript bundle from src/funcs/detector.lambda.ts",
+      "steps": [
+        {
+          "execArgs": [
+            "esbuild",
+            "--bundle",
+            "src/funcs/detector.lambda.ts",
+            "--target=node22",
+            "--platform=node",
+            "--outfile=assets/funcs/detector.lambda/index.js",
+            "--tsconfig=test/tsconfig.json",
+            "--external:@aws-sdk/*",
+            "--watch"
+          ]
+        }
+      ]
+    },
     "clobber": {
       "name": "clobber",
       "description": "hard resets to HEAD of origin and cleans the local repo",
@@ -272,7 +318,12 @@
     },
     "pre-compile": {
       "name": "pre-compile",
-      "description": "Prepare the project for compilation"
+      "description": "Prepare the project for compilation",
+      "steps": [
+        {
+          "spawn": "bundle"
+        }
+      ]
     },
     "release": {
       "name": "release",
@@ -364,7 +415,7 @@
             "--peer",
             "--no-deprecated",
             "--dep=dev,prod,peer,optional",
-            "--filter=@types/jest,eslint-import-resolver-typescript,eslint-plugin-import,jest,jsii-diff,jsii-pacmak,projen,ts-jest,ts-node"
+            "--filter=@types/jest,esbuild,eslint-import-resolver-typescript,eslint-plugin-import,jest,jsii-diff,jsii-pacmak,projen,ts-jest,ts-node"
           ]
         },
         {
@@ -374,13 +425,20 @@
           "execArgs": [
             "npm",
             "update",
+            "@aws-sdk/client-cloudformation",
+            "@aws-sdk/client-resource-groups-tagging-api",
+            "@aws-sdk/client-sns",
+            "@aws/durable-execution-sdk-js",
             "@gammarers/projen-projects",
             "@stylistic/eslint-plugin",
             "@types/jest",
             "@types/node",
             "@typescript-eslint/eslint-plugin",
             "@typescript-eslint/parser",
+            "aws-sdk-client-mock-jest",
+            "aws-sdk-client-mock",
             "commit-and-tag-version",
+            "esbuild",
             "eslint-import-resolver-typescript",
             "eslint-plugin-import",
             "eslint",

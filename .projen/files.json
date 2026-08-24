@@ -16,6 +16,7 @@
     ".projen/tasks.json",
     "LICENSE",
     "projenrc/tsconfig.json",
+    "src/funcs/detector-function.ts",
     "test/tsconfig.json",
     "tsconfig.json"
   ],

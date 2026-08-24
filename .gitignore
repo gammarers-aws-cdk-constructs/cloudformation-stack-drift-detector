@@ -51,5 +51,7 @@ junit.xml
 !/projenrc/tsconfig.json
 .jsii
 !/API.md
+/assets/
+!/src/funcs/detector-function.ts
 !/.editorconfig
 !/.projenrc.ts
