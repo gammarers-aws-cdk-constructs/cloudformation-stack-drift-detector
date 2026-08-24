@@ -284,15 +284,15 @@ async function processStackDrift(
 }
 
 /**
- * Durable Lambda handler that discovers target stacks and detects drift sequentially.
+ * Discovers target stacks and detects drift sequentially.
  *
  * @param event - Optional tag filter used to select stacks.
  * @param context - Durable execution context for steps and waits.
  */
-export const handler = withDurableExecution(async (
+export async function processDriftDetection(
   event: DriftDetectionEvent,
   context: DurableContext,
-): Promise<void> => {
+): Promise<void> {
   const topicArn = getNotificationTopicArn();
   const stackNames = await context.step('get-target-stack-names', async () => {
     return getTargetStackNames(event ?? {});
@@ -301,4 +301,7 @@ export const handler = withDurableExecution(async (
   for (const stackName of stackNames) {
     await processStackDrift(stackName, topicArn, context);
   }
-});
+}
+
+/** Durable Lambda handler wrapping {@link processDriftDetection}. */
+export const handler = withDurableExecution(processDriftDetection);

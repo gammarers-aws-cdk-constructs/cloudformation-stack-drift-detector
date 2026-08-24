@@ -11,6 +11,8 @@ const project = new ProjenCdkConstructLibrary({
     '@aws-sdk/client-cloudformation@^3.1116.0',
     '@aws-sdk/client-resource-groups-tagging-api@^3.1116.0',
     '@aws-sdk/client-sns@^3.1116.0',
+    'aws-sdk-client-mock@^4.1.0',
+    'aws-sdk-client-mock-jest@^4.1.0',
   ],
   cdkVersion: '2.232.0',
   lambdaOptions: {
