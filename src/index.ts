@@ -52,7 +52,11 @@ export interface CloudformationStackDriftDetectorProps {
 }
 
 /**
- * Periodically detects CloudFormation stack drift and publishes results to SNS.
+ * CDK construct that runs CloudFormation stack drift detection daily and publishes
+ * drifted stacks to SNS.
+ *
+ * Target stacks are selected by {@link TargetResource} when provided. When omitted,
+ * every stable stack in the account and region is inspected.
  */
 export class CloudformationStackDriftDetector extends Construct {
   /**
@@ -60,6 +64,13 @@ export class CloudformationStackDriftDetector extends Construct {
    */
   readonly notificationTopic: sns.ITopic;
 
+  /**
+   * Creates the durable detector Lambda, IAM policies, SNS topic, and daily EventBridge rule.
+   *
+   * @param scope - Parent construct.
+   * @param id - Construct id.
+   * @param props - Optional tag filter, notification topic, and durable execution settings.
+   */
   constructor(scope: Construct, id: string, props: CloudformationStackDriftDetectorProps = {}) {
     super(scope, id);
 
@@ -120,6 +131,11 @@ export class CloudformationStackDriftDetector extends Construct {
     });
   }
 
+  /**
+   * Returns the CloudFormation stack ARN pattern used for drift-detection IAM grants.
+   *
+   * @returns A single ARN that matches all stacks in the current account and region.
+   */
   private getStackArns(): string[] {
     const stack = Stack.of(this);
     return [
@@ -132,6 +148,12 @@ export class CloudformationStackDriftDetector extends Construct {
     ];
   }
 
+  /**
+   * Builds the EventBridge target payload passed to the detector Lambda.
+   *
+   * @param targetResource - Optional tag filter. When omitted, an empty payload selects all stacks.
+   * @returns Tag key and values for the Lambda event, or an empty object.
+   */
   private getEventInput(targetResource?: TargetResource): { tagKey?: string; tagValues?: string[] } {
     if (!targetResource) {
       return {};
