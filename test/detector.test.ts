@@ -3,6 +3,12 @@ import { Match, Template } from 'aws-cdk-lib/assertions';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import { CloudformationStackDriftDetector } from '../src';
 
+const NOTIFICATION_TOPIC_ARN = 'arn:aws:sns:us-east-1:123456789012:existing-topic';
+
+function getNotificationTopic(stack: Stack): sns.ITopic {
+  return sns.Topic.fromTopicArn(stack, 'NotificationTopic', NOTIFICATION_TOPIC_ARN);
+}
+
 describe('CloudformationStackDriftDetector', () => {
   describe('default', () => {
     const app = new App();
@@ -12,11 +18,13 @@ describe('CloudformationStackDriftDetector', () => {
         region: 'us-east-1',
       },
     });
-    new CloudformationStackDriftDetector(stack, 'Detector');
+    new CloudformationStackDriftDetector(stack, 'Detector', {
+      notificationTopic: getNotificationTopic(stack),
+    });
     const template = Template.fromStack(stack);
 
-    it('should create an SNS topic', () => {
-      template.resourceCountIs('AWS::SNS::Topic', 1);
+    it('should not create an SNS topic', () => {
+      template.resourceCountIs('AWS::SNS::Topic', 0);
     });
 
     it('should have a durable lambda function', () => {
@@ -32,7 +40,7 @@ describe('CloudformationStackDriftDetector', () => {
         Environment: Match.objectLike({
           Variables: Match.objectLike({
             AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
-            NOTIFICATION_TOPIC_ARN: Match.anyValue(),
+            NOTIFICATION_TOPIC_ARN,
           }),
         }),
       }));
@@ -112,6 +120,7 @@ describe('CloudformationStackDriftDetector', () => {
       },
     });
     new CloudformationStackDriftDetector(stack, 'Detector', {
+      notificationTopic: getNotificationTopic(stack),
       targetResource: {
         tagKey: 'DriftDetection',
         tagValues: ['enabled'],
@@ -139,6 +148,7 @@ describe('CloudformationStackDriftDetector', () => {
       },
     });
     new CloudformationStackDriftDetector(stack, 'Detector', {
+      notificationTopic: getNotificationTopic(stack),
       targetResource: {
         tagKey: 'DriftDetection',
       },
@@ -152,39 +162,6 @@ describe('CloudformationStackDriftDetector', () => {
             Input: '{"tagKey":"DriftDetection"}',
           }),
         ]),
-      }));
-    });
-  });
-
-  describe('with existing notification topic', () => {
-    const app = new App();
-    const stack = new Stack(app, 'TestStack', {
-      env: {
-        account: '123456789012',
-        region: 'us-east-1',
-      },
-    });
-    const topic = sns.Topic.fromTopicArn(
-      stack,
-      'ExistingTopic',
-      'arn:aws:sns:us-east-1:123456789012:existing-topic',
-    );
-    new CloudformationStackDriftDetector(stack, 'Detector', {
-      notificationTopic: topic,
-    });
-    const template = Template.fromStack(stack);
-
-    it('should not create an SNS topic', () => {
-      template.resourceCountIs('AWS::SNS::Topic', 0);
-    });
-
-    it('should use the provided topic ARN', () => {
-      template.hasResourceProperties('AWS::Lambda::Function', Match.objectLike({
-        Environment: Match.objectLike({
-          Variables: Match.objectLike({
-            NOTIFICATION_TOPIC_ARN: 'arn:aws:sns:us-east-1:123456789012:existing-topic',
-          }),
-        }),
       }));
     });
   });

@@ -27,16 +27,14 @@ export interface TargetResource {
  */
 export interface CloudformationStackDriftDetectorProps {
   /**
+   * SNS topic used to notify when a stack has drifted.
+   */
+  readonly notificationTopic: sns.ITopic;
+  /**
    * Tag filter used to select target stacks.
    * If omitted, all stacks in the account and region are inspected.
    */
   readonly targetResource?: TargetResource;
-  /**
-   * SNS topic used to notify when a stack has drifted.
-   *
-   * @default - a new topic is created
-   */
-  readonly notificationTopic?: sns.ITopic;
   /**
    * Maximum duration of a durable execution.
    *
@@ -65,16 +63,16 @@ export class CloudformationStackDriftDetector extends Construct {
   readonly notificationTopic: sns.ITopic;
 
   /**
-   * Creates the durable detector Lambda, IAM policies, SNS topic, and daily EventBridge rule.
+   * Creates the durable detector Lambda, IAM policies, and daily EventBridge rule.
    *
    * @param scope - Parent construct.
    * @param id - Construct id.
-   * @param props - Optional tag filter, notification topic, and durable execution settings.
+   * @param props - Notification topic, optional tag filter, and durable execution settings.
    */
-  constructor(scope: Construct, id: string, props: CloudformationStackDriftDetectorProps = {}) {
+  constructor(scope: Construct, id: string, props: CloudformationStackDriftDetectorProps) {
     super(scope, id);
 
-    this.notificationTopic = props.notificationTopic ?? new sns.Topic(this, 'NotificationTopic');
+    this.notificationTopic = props.notificationTopic;
 
     const durableFunction = new DetectorFunction(this, 'Function', {
       environment: {
