@@ -1,6 +1,26 @@
 {
   "dependencies": [
     {
+      "name": "@aws-sdk/client-cloudformation",
+      "version": "^3.1116.0",
+      "type": "build"
+    },
+    {
+      "name": "@aws-sdk/client-resource-groups-tagging-api",
+      "version": "^3.1116.0",
+      "type": "build"
+    },
+    {
+      "name": "@aws-sdk/client-sns",
+      "version": "^3.1116.0",
+      "type": "build"
+    },
+    {
+      "name": "@aws/durable-execution-sdk-js",
+      "version": "^2.3.0",
+      "type": "build"
+    },
+    {
       "name": "@gammarers/projen-projects",
       "version": "^0.2.0",
       "type": "build"
@@ -32,6 +52,10 @@
     {
       "name": "commit-and-tag-version",
       "version": "^12",
+      "type": "build"
+    },
+    {
+      "name": "esbuild",
       "type": "build"
     },
     {
