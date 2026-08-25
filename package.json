@@ -1,5 +1,6 @@
 {
   "name": "cloudformation-stack-drift-detector",
+  "description": "AWS CDK construct that runs CloudFormation stack drift detection on a daily schedule and publishes drifted stacks to Amazon SNS.",
   "repository": {
     "type": "git",
     "url": "https://github.com/gammarers-aws-cdk-constructs/cloudformation-stack-drift-detector.git"
@@ -74,7 +75,14 @@
     "constructs": "^10.5.1"
   },
   "keywords": [
-    "cdk"
+    "aws",
+    "cdk",
+    "cloudformation",
+    "construct",
+    "detector",
+    "drift",
+    "sns",
+    "stack"
   ],
   "engines": {
     "node": ">= 20.0.0"
