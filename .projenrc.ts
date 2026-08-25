@@ -3,6 +3,8 @@ import { awscdk } from 'projen';
 
 const project = new ProjenCdkConstructLibrary({
   projenrcTs: true,
+  releaseToNpm: true,
+  npmTrustedPublishing: false,
   name: 'cloudformation-stack-drift-detector',
   repository: 'https://github.com/gammarers-aws-cdk-constructs/cloudformation-stack-drift-detector.git',
   devDeps: [
