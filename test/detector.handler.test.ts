@@ -27,29 +27,26 @@ const STACK_DATE = new Date('2026-01-01T00:00:00.000Z');
 const WAIT_INTERVAL_SECONDS = 30;
 
 const createFakeDurableContext = (): DurableContext => {
+  // DurableContext is an SDK type; tests only need step and wait.
   return {
     step: jest.fn(async (_name: string, fn: () => Promise<unknown>) => fn()),
     wait: jest.fn(async () => undefined),
   } as unknown as DurableContext;
 };
 
-const createStackSummary = (stackName: string) => {
-  return {
-    StackName: stackName,
-    CreationTime: STACK_DATE,
-    StackStatus: 'CREATE_COMPLETE' as const,
-  };
-};
+const createStackSummary = (stackName: string) => ({
+  StackName: stackName,
+  CreationTime: STACK_DATE,
+  StackStatus: 'CREATE_COMPLETE' as const,
+});
 
-const createResourceDrift = (logicalResourceId: string) => {
-  return {
-    LogicalResourceId: logicalResourceId,
-    StackResourceDriftStatus: 'MODIFIED' as const,
-    StackId: STACK_ARN,
-    ResourceType: 'AWS::S3::Bucket',
-    Timestamp: STACK_DATE,
-  };
-};
+const createResourceDrift = (logicalResourceId: string) => ({
+  LogicalResourceId: logicalResourceId,
+  StackResourceDriftStatus: 'MODIFIED' as const,
+  StackId: STACK_ARN,
+  ResourceType: 'AWS::S3::Bucket',
+  Timestamp: STACK_DATE,
+});
 
 const mockInSyncDetection = (detectionId: string): void => {
   cloudFormationMock.on(DetectStackDriftCommand).resolves({

@@ -8,6 +8,15 @@ import * as sns from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
 import { DetectorFunction } from './funcs/detector-function';
 
+/** Default maximum duration of a durable execution. */
+const DEFAULT_EXECUTION_TIMEOUT = Duration.hours(1);
+/** Default retention for durable execution history after completion. */
+const DEFAULT_RETENTION_PERIOD = Duration.days(30);
+/** Invoke timeout for a single Lambda worker. */
+const LAMBDA_INVOKE_TIMEOUT = Duration.minutes(15);
+/** How often EventBridge starts a detection run. */
+const DETECTION_SCHEDULE_RATE = Duration.days(1);
+
 /** AWS managed policy required for Lambda durable execution. */
 const DURABLE_EXECUTION_POLICY_NAME = 'service-role/AWSLambdaBasicDurableExecutionRolePolicy';
 /**
@@ -120,10 +129,10 @@ export class CloudformationStackDriftDetector extends Construct {
         NOTIFICATION_TOPIC_ARN: this.notificationTopic.topicArn,
       },
       durableConfig: {
-        executionTimeout: props.executionTimeout ?? Duration.hours(1),
-        retentionPeriod: props.retentionPeriod ?? Duration.days(30),
+        executionTimeout: props.executionTimeout ?? DEFAULT_EXECUTION_TIMEOUT,
+        retentionPeriod: props.retentionPeriod ?? DEFAULT_RETENTION_PERIOD,
       },
-      timeout: Duration.minutes(15),
+      timeout: LAMBDA_INVOKE_TIMEOUT,
     });
 
     if (!durableFunction.role) {
@@ -182,7 +191,7 @@ export class CloudformationStackDriftDetector extends Construct {
     });
 
     new events.Rule(this, 'Schedule', {
-      schedule: events.Schedule.rate(Duration.days(1)),
+      schedule: events.Schedule.rate(DETECTION_SCHEDULE_RATE),
       targets: [
         new targets.LambdaFunction(alias, {
           event: events.RuleTargetInput.fromObject(this.getEventInput(props.targetResource)),
@@ -218,12 +227,15 @@ export class CloudformationStackDriftDetector extends Construct {
     if (!targetResource) {
       return {};
     }
-    if (targetResource.tagValues && targetResource.tagValues.length > 0) {
+
+    const tagValues = targetResource.tagValues;
+    if (tagValues && tagValues.length > 0) {
       return {
         tagKey: targetResource.tagKey,
-        tagValues: targetResource.tagValues,
+        tagValues,
       };
     }
+
     return {
       tagKey: targetResource.tagKey,
     };

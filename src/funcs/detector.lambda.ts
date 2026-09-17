@@ -6,6 +6,7 @@ import {
   DetectStackDriftCommand,
   ListStacksCommand,
   StackResourceDrift,
+  StackResourceDriftStatus,
   StackStatus,
 } from '@aws-sdk/client-cloudformation';
 import {
@@ -13,13 +14,29 @@ import {
   ResourceGroupsTaggingAPIClient,
 } from '@aws-sdk/client-resource-groups-tagging-api';
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
+import {
+  hasNextPage,
+  hasTagFilterValues,
+  isDetectionFailed,
+  isDetectionInProgress,
+  isStackDrifted,
+} from './detector-predicates';
 
-/** Interval between DescribeStackDriftDetectionStatus polls. */
-const DETECTION_POLL_INTERVAL_SECONDS = 30;
+/** Interval between DescribeStackDriftDetectionStatus waits. */
+const DETECTION_WAIT_INTERVAL_SECONDS = 30;
 /** Environment variable that holds the SNS topic ARN for drift notifications. */
 const NOTIFICATION_TOPIC_ARN_ENV = 'NOTIFICATION_TOPIC_ARN';
 /** Resource Groups Tagging API type used to discover CloudFormation stacks. */
 const CLOUDFORMATION_STACK_RESOURCE_TYPE = 'cloudformation:stack';
+/** SNS Publish subject max length. */
+const SNS_SUBJECT_MAX_LENGTH = 100;
+/** Fallback reason when DetectStackDrift fails without DetectionStatusReason. */
+const UNKNOWN_DETECTION_FAILURE_REASON = 'unknown reason';
+/** Resource drift statuses included in SNS notifications. */
+const RESOURCE_DRIFT_STATUS_FILTERS: StackResourceDriftStatus[] = [
+  StackResourceDriftStatus.MODIFIED,
+  StackResourceDriftStatus.DELETED,
+];
 /** Stack statuses that are eligible for drift detection. */
 const STABLE_STACK_STATUSES = [
   StackStatus.CREATE_COMPLETE,
@@ -66,13 +83,13 @@ interface DriftDetectionStatus {
  * @returns The notification topic ARN.
  * @throws When {@link NOTIFICATION_TOPIC_ARN_ENV} is not set.
  */
-function getNotificationTopicArn(): string {
+const getNotificationTopicArn = (): string => {
   const topicArn = process.env[NOTIFICATION_TOPIC_ARN_ENV];
   if (!topicArn) {
     throw new Error(`${NOTIFICATION_TOPIC_ARN_ENV} environment variable is not set`);
   }
   return topicArn;
-}
+};
 
 /**
  * Extracts a CloudFormation stack name from a stack ARN.
@@ -81,14 +98,14 @@ function getNotificationTopicArn(): string {
  * @returns The stack name.
  * @throws When the ARN does not contain a stack name.
  */
-function getStackNameFromArn(resourceArn: string): string {
+const getStackNameFromArn = (resourceArn: string): string => {
   const resource = resourceArn.split(':').pop();
   const stackName = resource?.split('/')[1];
   if (!stackName) {
     throw new Error(`Unable to get stack name from ARN: ${resourceArn}`);
   }
   return stackName;
-}
+};
 
 /**
  * Lists CloudFormation stacks that match the given tag filter.
@@ -97,7 +114,7 @@ function getStackNameFromArn(resourceArn: string): string {
  * @param tagValues - Optional values for `tagKey`. An empty or omitted list matches any value.
  * @returns Stack names discovered by the Resource Groups Tagging API.
  */
-async function getTaggedStackNames(tagKey: string, tagValues?: string[]): Promise<string[]> {
+const getTaggedStackNames = async (tagKey: string, tagValues?: string[]): Promise<string[]> => {
   const stackNames: string[] = [];
   let paginationToken: string | undefined;
 
@@ -107,7 +124,7 @@ async function getTaggedStackNames(tagKey: string, tagValues?: string[]): Promis
       TagFilters: [
         {
           Key: tagKey,
-          Values: tagValues && tagValues.length > 0 ? tagValues : undefined,
+          Values: hasTagFilterValues(tagValues) ? tagValues : undefined,
         },
       ],
       PaginationToken: paginationToken,
@@ -120,17 +137,17 @@ async function getTaggedStackNames(tagKey: string, tagValues?: string[]): Promis
     }
 
     paginationToken = response.PaginationToken;
-  } while (paginationToken);
+  } while (hasNextPage(paginationToken));
 
   return stackNames;
-}
+};
 
 /**
  * Lists all stable CloudFormation stacks in the current account and region.
  *
  * @returns Stack names in a complete, non-transitional status.
  */
-async function getAllStackNames(): Promise<string[]> {
+const getAllStackNames = async (): Promise<string[]> => {
   const stackNames: string[] = [];
   let nextToken: string | undefined;
 
@@ -147,10 +164,10 @@ async function getAllStackNames(): Promise<string[]> {
     }
 
     nextToken = response.NextToken;
-  } while (nextToken);
+  } while (hasNextPage(nextToken));
 
   return stackNames;
-}
+};
 
 /**
  * Resolves target stack names from the detector event.
@@ -158,12 +175,12 @@ async function getAllStackNames(): Promise<string[]> {
  * @param event - Tag filter from EventBridge, or an empty object for all stacks.
  * @returns Stack names to inspect for drift.
  */
-async function getTargetStackNames(event: DriftDetectionEvent): Promise<string[]> {
+const getTargetStackNames = async (event: DriftDetectionEvent): Promise<string[]> => {
   if (event.tagKey) {
     return getTaggedStackNames(event.tagKey, event.tagValues);
   }
   return getAllStackNames();
-}
+};
 
 /**
  * Returns modified or deleted resource drifts for a stack.
@@ -171,42 +188,42 @@ async function getTargetStackNames(event: DriftDetectionEvent): Promise<string[]
  * @param stackName - Stack to describe.
  * @returns Resource drift records filtered to `MODIFIED` and `DELETED`.
  */
-async function getResourceDrifts(stackName: string): Promise<StackResourceDrift[]> {
+const getResourceDrifts = async (stackName: string): Promise<StackResourceDrift[]> => {
   const resourceDrifts: StackResourceDrift[] = [];
   let nextToken: string | undefined;
 
   do {
     const response = await cloudFormation.send(new DescribeStackResourceDriftsCommand({
       StackName: stackName,
-      StackResourceDriftStatusFilters: ['MODIFIED', 'DELETED'],
+      StackResourceDriftStatusFilters: RESOURCE_DRIFT_STATUS_FILTERS,
       NextToken: nextToken,
     }));
     resourceDrifts.push(...(response.StackResourceDrifts ?? []));
     nextToken = response.NextToken;
-  } while (nextToken);
+  } while (hasNextPage(nextToken));
 
   return resourceDrifts;
-}
+};
 
 /**
- * Polls DescribeStackDriftDetectionStatus until detection is no longer in progress.
+ * Waits until DescribeStackDriftDetectionStatus is no longer in progress.
  *
  * @param stackName - Stack used in durable step and wait names.
  * @param detectionId - ID returned by DetectStackDrift.
  * @param context - Durable execution context.
  * @returns The completed detection status.
  */
-async function getDriftDetectionStatus(
+const waitForDetectionStatus = async (
   stackName: string,
   detectionId: string,
   context: DurableContext,
-): Promise<DriftDetectionStatus> {
+): Promise<DriftDetectionStatus> => {
   let attempt = 0;
   let status: DriftDetectionStatus;
 
   do {
     await context.wait(`wait-drift-detection-${stackName}-${attempt}`, {
-      seconds: DETECTION_POLL_INTERVAL_SECONDS,
+      seconds: DETECTION_WAIT_INTERVAL_SECONDS,
     });
 
     status = await context.step(
@@ -224,10 +241,10 @@ async function getDriftDetectionStatus(
     );
 
     attempt += 1;
-  } while (status.detectionStatus === 'DETECTION_IN_PROGRESS');
+  } while (isDetectionInProgress(status.detectionStatus));
 
   return status;
-}
+};
 
 /**
  * Detects drift for one stack and publishes an SNS notification when the stack has drifted.
@@ -237,11 +254,11 @@ async function getDriftDetectionStatus(
  * @param context - Durable execution context.
  * @throws When DetectStackDrift returns no ID, or detection finishes with `DETECTION_FAILED`.
  */
-async function processStackDrift(
+const processStackDrift = async (
   stackName: string,
   topicArn: string,
   context: DurableContext,
-): Promise<void> {
+): Promise<void> => {
   const detectionId = await context.step(`detect-stack-drift-${stackName}`, async () => {
     const response = await cloudFormation.send(new DetectStackDriftCommand({
       StackName: stackName,
@@ -252,15 +269,15 @@ async function processStackDrift(
     return response.StackDriftDetectionId;
   });
 
-  const status = await getDriftDetectionStatus(stackName, detectionId, context);
+  const status = await waitForDetectionStatus(stackName, detectionId, context);
 
-  if (status.detectionStatus === 'DETECTION_FAILED') {
+  if (isDetectionFailed(status.detectionStatus)) {
     throw new Error(
-      `Drift detection failed for stack ${stackName}: ${status.detectionStatusReason ?? 'unknown reason'}`,
+      `Drift detection failed for stack ${stackName}: ${status.detectionStatusReason ?? UNKNOWN_DETECTION_FAILURE_REASON}`,
     );
   }
 
-  if (status.stackDriftStatus !== 'DRIFTED') {
+  if (!isStackDrifted(status.stackDriftStatus)) {
     return;
   }
 
@@ -270,7 +287,7 @@ async function processStackDrift(
   );
 
   await context.step(`publish-notification-${stackName}`, async () => {
-    const subject = `Stack drift detected: ${stackName}`.slice(0, 100);
+    const subject = `Stack drift detected: ${stackName}`.slice(0, SNS_SUBJECT_MAX_LENGTH);
     await sns.send(new PublishCommand({
       TopicArn: topicArn,
       Subject: subject,
@@ -281,7 +298,7 @@ async function processStackDrift(
       }),
     }));
   });
-}
+};
 
 /**
  * Discovers target stacks and detects drift sequentially.
@@ -290,10 +307,10 @@ async function processStackDrift(
  * @param event - Optional tag filter used to select stacks.
  * @param context - Durable execution context for steps and waits.
  */
-export async function processDriftDetection(
+export const processDriftDetection = async (
   event: DriftDetectionEvent,
   context: DurableContext,
-): Promise<void> {
+): Promise<void> => {
   const topicArn = getNotificationTopicArn();
   const stackNames = await context.step('get-target-stack-names', async () => {
     return getTargetStackNames(event ?? {});
@@ -307,7 +324,7 @@ export async function processDriftDetection(
       console.error(`Drift detection failed for stack ${stackName}`, error);
     }
   }
-}
+};
 
 /** Durable Lambda handler wrapping {@link processDriftDetection}. */
 export const handler = withDurableExecution(processDriftDetection);
