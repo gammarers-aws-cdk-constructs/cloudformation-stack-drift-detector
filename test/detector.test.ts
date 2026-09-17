@@ -1,4 +1,4 @@
-import { App, Stack } from 'aws-cdk-lib';
+import { App, Duration, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as kms from 'aws-cdk-lib/aws-kms';
@@ -288,6 +288,47 @@ describe('CloudformationStackDriftDetector', () => {
             Input: '{"tagKey":"DriftDetection"}',
           }),
         ]),
+      }));
+    });
+  });
+
+  describe('with empty tag values', () => {
+    const stack = createTestStack();
+    new CloudformationStackDriftDetector(stack, 'Detector', {
+      notificationTopic: getNotificationTopic(stack),
+      targetResource: {
+        tagKey: 'DriftDetection',
+        tagValues: [],
+      },
+    });
+    const template = Template.fromStack(stack);
+
+    it('should omit empty tag values from the detector input', () => {
+      template.hasResourceProperties('AWS::Events::Rule', Match.objectLike({
+        Targets: Match.arrayWith([
+          Match.objectLike({
+            Input: '{"tagKey":"DriftDetection"}',
+          }),
+        ]),
+      }));
+    });
+  });
+
+  describe('with durable execution settings', () => {
+    const stack = createTestStack();
+    new CloudformationStackDriftDetector(stack, 'Detector', {
+      notificationTopic: getNotificationTopic(stack),
+      executionTimeout: Duration.hours(2),
+      retentionPeriod: Duration.days(14),
+    });
+    const template = Template.fromStack(stack);
+
+    it('should apply execution timeout and retention period', () => {
+      template.hasResourceProperties('AWS::Lambda::Function', Match.objectLike({
+        DurableConfig: {
+          ExecutionTimeout: 7200,
+          RetentionPeriodInDays: 14,
+        },
       }));
     });
   });

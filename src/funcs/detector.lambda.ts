@@ -285,6 +285,7 @@ async function processStackDrift(
 
 /**
  * Discovers target stacks and detects drift sequentially.
+ * A failure for one stack does not skip the remaining stacks.
  *
  * @param event - Optional tag filter used to select stacks.
  * @param context - Durable execution context for steps and waits.
@@ -299,7 +300,12 @@ export async function processDriftDetection(
   });
 
   for (const stackName of stackNames) {
-    await processStackDrift(stackName, topicArn, context);
+    try {
+      await processStackDrift(stackName, topicArn, context);
+    } catch (error) {
+      // One failed stack must not skip drift detection for the remaining stacks.
+      console.error(`Drift detection failed for stack ${stackName}`, error);
+    }
   }
 }
 
