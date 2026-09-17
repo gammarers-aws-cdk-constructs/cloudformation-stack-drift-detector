@@ -21,7 +21,7 @@ new CloudformationStackDriftDetector(scope: Construct, id: string, props: Cloudf
 | --- | --- | --- |
 | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.Initializer.parameter.scope">scope</a></code> | <code>constructs.Construct</code> | - Parent construct. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.Initializer.parameter.id">id</a></code> | <code>string</code> | - Construct id. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.Initializer.parameter.props">props</a></code> | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps">CloudformationStackDriftDetectorProps</a></code> | - Notification topic, optional tag filter, and durable execution settings. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.Initializer.parameter.props">props</a></code> | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps">CloudformationStackDriftDetectorProps</a></code> | - Notification topic, IAM grants, optional tag filter, and durable execution settings. |
 
 ---
 
@@ -45,7 +45,7 @@ Construct id.
 
 - *Type:* <a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps">CloudformationStackDriftDetectorProps</a>
 
-Notification topic, optional tag filter, and durable execution settings.
+Notification topic, IAM grants, optional tag filter, and durable execution settings.
 
 ---
 
@@ -133,6 +133,7 @@ Any object.
 | --- | --- | --- |
 | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic that receives drift notifications. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.property.role">role</a></code> | <code>aws-cdk-lib.aws_iam.IRole</code> | IAM role used by the detector Lambda. |
 
 ---
 
@@ -160,6 +161,21 @@ SNS topic that receives drift notifications.
 
 ---
 
+##### `role`<sup>Required</sup> <a name="role" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetector.property.role"></a>
+
+```typescript
+public readonly role: IRole;
+```
+
+- *Type:* aws-cdk-lib.aws_iam.IRole
+
+IAM role used by the detector Lambda.
+
+Attach extra Describe/Get permissions for resources in target stacks when
+{@link CloudformationStackDriftDetectorProps.grantReadOnlyAccess} is not enough.
+
+---
+
 
 ## Structs <a name="Structs" id="Structs"></a>
 
@@ -180,7 +196,10 @@ const cloudformationStackDriftDetectorProps: CloudformationStackDriftDetectorPro
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
 | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic used to notify when a stack has drifted. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.additionalPolicyStatements">additionalPolicyStatements</a></code> | <code>aws-cdk-lib.aws_iam.PolicyStatement[]</code> | Extra IAM statements attached to the detector Lambda role. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.executionTimeout">executionTimeout</a></code> | <code>aws-cdk-lib.Duration</code> | Maximum duration of a durable execution. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.grantReadOnlyAccess">grantReadOnlyAccess</a></code> | <code>boolean</code> | When true, attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.notificationTopicKey">notificationTopicKey</a></code> | <code>aws-cdk-lib.aws_kms.IKey</code> | Customer-managed KMS key that encrypts {@link CloudformationStackDriftDetectorProps.notificationTopic}. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.retentionPeriod">retentionPeriod</a></code> | <code>aws-cdk-lib.Duration</code> | How long durable execution history is retained after completion. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.targetResource">targetResource</a></code> | <code><a href="#cloudformation-stack-drift-detector.TargetResource">TargetResource</a></code> | Tag filter used to select target stacks. |
 
@@ -198,6 +217,22 @@ SNS topic used to notify when a stack has drifted.
 
 ---
 
+##### `additionalPolicyStatements`<sup>Optional</sup> <a name="additionalPolicyStatements" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.additionalPolicyStatements"></a>
+
+```typescript
+public readonly additionalPolicyStatements: PolicyStatement[];
+```
+
+- *Type:* aws-cdk-lib.aws_iam.PolicyStatement[]
+- *Default:* no extra inline statements
+
+Extra IAM statements attached to the detector Lambda role.
+
+Use this to grant Describe/Get permissions for resources in target stacks
+(for example `s3:GetBucket*` or `ec2:Describe*`).
+
+---
+
 ##### `executionTimeout`<sup>Optional</sup> <a name="executionTimeout" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.executionTimeout"></a>
 
 ```typescript
@@ -208,6 +243,35 @@ public readonly executionTimeout: Duration;
 - *Default:* Duration.hours(1)
 
 Maximum duration of a durable execution.
+
+---
+
+##### `grantReadOnlyAccess`<sup>Optional</sup> <a name="grantReadOnlyAccess" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.grantReadOnlyAccess"></a>
+
+```typescript
+public readonly grantReadOnlyAccess: boolean;
+```
+
+- *Type:* boolean
+- *Default:* false
+
+When true, attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks.
+
+---
+
+##### `notificationTopicKey`<sup>Optional</sup> <a name="notificationTopicKey" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.notificationTopicKey"></a>
+
+```typescript
+public readonly notificationTopicKey: IKey;
+```
+
+- *Type:* aws-cdk-lib.aws_kms.IKey
+- *Default:* no extra KMS grant; relies on `grantPublish` when the topic exposes a key
+
+Customer-managed KMS key that encrypts {@link CloudformationStackDriftDetectorProps.notificationTopic}.
+
+`grantPublish` already grants KMS when the topic is a `sns.Topic` with `masterKey`.
+Pass this for imported topics (`fromTopicArn`), where the encryption key is otherwise unknown.
 
 ---
 
