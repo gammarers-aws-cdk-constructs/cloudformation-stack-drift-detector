@@ -60,7 +60,7 @@ export interface TargetResource {
  */
 export interface CloudformationStackDriftDetectorProps {
   /**
-   * SNS topic used to notify when a stack has drifted.
+   * SNS topic that receives drift and failure notifications.
    */
   readonly notificationTopic: sns.ITopic;
   /**
@@ -74,7 +74,7 @@ export interface CloudformationStackDriftDetectorProps {
   readonly notificationTopicKey?: kms.IKey;
   /**
    * Tag filter used to select target stacks.
-   * If omitted, all stacks in the account and region are inspected.
+   * If omitted, every stable stack in the account and region is inspected.
    */
   readonly targetResource?: TargetResource;
   /**
@@ -115,7 +115,7 @@ export interface CloudformationStackDriftDetectorProps {
  */
 export class CloudformationStackDriftDetector extends Construct {
   /**
-   * SNS topic that receives drift notifications.
+   * SNS topic that receives drift and failure notifications.
    */
   readonly notificationTopic: sns.ITopic;
 

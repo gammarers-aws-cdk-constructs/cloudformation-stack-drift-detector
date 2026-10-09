@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/cloudformation-stack-drift-detector?style=flat-square)](https://www.npmjs.com/package/cloudformation-stack-drift-detector)
 [![license](https://img.shields.io/npm/l/cloudformation-stack-drift-detector?style=flat-square)](https://www.npmjs.com/package/cloudformation-stack-drift-detector)
 [![Node.js](https://img.shields.io/node/v/cloudformation-stack-drift-detector?style=flat-square)](https://www.npmjs.com/package/cloudformation-stack-drift-detector)
-[![build](https://img.shields.io/github/actions/workflow/status/gammarers-aws-cdk-constructs/cloudformation-stack-drift-detector/build.yml?branch=main&label=build&style=flat-square)](https://github.com/gammarers-aws-cdk-constructs/cloudformation-stack-drift-detector/actions/workflows/build.yml)
+[![build](https://img.shields.io/github/actions/workflow/status/gammarers-aws-cdk-constructs/cloudformation-stack-drift-detector/build.yml?label=build&style=flat-square)](https://github.com/gammarers-aws-cdk-constructs/cloudformation-stack-drift-detector/actions/workflows/build.yml)
 
 [![View on Construct Hub](https://constructs.dev/badge?package=cloudformation-stack-drift-detector)](https://constructs.dev/packages/cloudformation-stack-drift-detector)
 
@@ -23,7 +23,7 @@ AWS CDK construct that runs CloudFormation stack drift detection on a daily sche
 
 ## How it works
 
-A daily EventBridge rule invokes the detector Lambda `live` alias. The function selects stable CloudFormation stacks (by tag, or every stack in the account and region), runs DetectStackDrift on each stack, waits until detection finishes, and publishes drifted resource details to the caller-provided SNS topic. If detection fails for one stack, the function publishes a failure notification to the same topic and continues with the remaining stacks. The invocation result reports how many stacks succeeded and how many failed.
+A daily EventBridge rule invokes the detector Lambda `live` alias. The function selects CloudFormation stacks by tag, or every stable stack in the account and region when no tag is set. It runs DetectStackDrift on each stack, waits until detection finishes, and publishes drifted resource details to the caller-provided SNS topic. If detection fails for one stack, the function publishes a failure notification to the same topic and continues with the remaining stacks. The invocation result reports how many stacks succeeded and how many failed.
 
 DetectStackDrift also reads the live configuration of resources in those stacks. Grant those Describe/Get permissions through `grantReadOnlyAccess`, `additionalPolicyStatements`, or the public `role`.
 
@@ -203,7 +203,7 @@ These options apply to `CloudformationStackDriftDetector` and `CloudformationSta
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
-| `notificationTopic` | `sns.ITopic` | Yes | SNS topic that receives drift notifications. The construct does not create a topic. |
+| `notificationTopic` | `sns.ITopic` | Yes | SNS topic that receives drift and failure notifications. The construct does not create a topic. |
 | `notificationTopicKey` | `kms.IKey` | No | Customer-managed KMS key that encrypts `notificationTopic`. Use with imported topics, where `grantPublish` cannot grant KMS. |
 | `targetResource` | `TargetResource` | No | Tag filter used to select stacks. If omitted, all stable stacks in the account and region are inspected. |
 | `executionTimeout` | `Duration` | No | Maximum duration of a durable execution (default: `Duration.hours(1)`). |

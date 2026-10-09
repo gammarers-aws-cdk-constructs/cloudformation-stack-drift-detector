@@ -132,7 +132,7 @@ Any object.
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
 | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic that receives drift notifications. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic that receives drift and failure notifications. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.property.role">role</a></code> | <code>aws-cdk-lib.aws_iam.IRole</code> | IAM role used by the detector Lambda. |
 
 ---
@@ -157,7 +157,7 @@ public readonly notificationTopic: ITopic;
 
 - *Type:* aws-cdk-lib.aws_sns.ITopic
 
-SNS topic that receives drift notifications.
+SNS topic that receives drift and failure notifications.
 
 ---
 
@@ -1152,7 +1152,7 @@ const cloudformationStackDriftDetectorProps: CloudformationStackDriftDetectorPro
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic used to notify when a stack has drifted. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic that receives drift and failure notifications. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.additionalPolicyStatements">additionalPolicyStatements</a></code> | <code>aws-cdk-lib.aws_iam.PolicyStatement[]</code> | Extra IAM statements attached to the detector Lambda role. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.executionTimeout">executionTimeout</a></code> | <code>aws-cdk-lib.Duration</code> | Maximum duration of a durable execution. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.grantReadOnlyAccess">grantReadOnlyAccess</a></code> | <code><a href="#cloudformation-stack-drift-detector.ReadOnlyAccessGrant">ReadOnlyAccessGrant</a></code> | Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks. |
@@ -1170,7 +1170,7 @@ public readonly notificationTopic: ITopic;
 
 - *Type:* aws-cdk-lib.aws_sns.ITopic
 
-SNS topic used to notify when a stack has drifted.
+SNS topic that receives drift and failure notifications.
 
 ---
 
@@ -1255,7 +1255,7 @@ public readonly targetResource: TargetResource;
 
 Tag filter used to select target stacks.
 
-If omitted, all stacks in the account and region are inspected.
+If omitted, every stable stack in the account and region is inspected.
 
 ---
 
@@ -1275,7 +1275,7 @@ const cloudformationStackDriftDetectorStackProps: CloudformationStackDriftDetect
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic used to notify when a stack has drifted. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic that receives drift and failure notifications. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.additionalPolicyStatements">additionalPolicyStatements</a></code> | <code>aws-cdk-lib.aws_iam.PolicyStatement[]</code> | Extra IAM statements attached to the detector Lambda role. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.executionTimeout">executionTimeout</a></code> | <code>aws-cdk-lib.Duration</code> | Maximum duration of a durable execution. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.grantReadOnlyAccess">grantReadOnlyAccess</a></code> | <code><a href="#cloudformation-stack-drift-detector.ReadOnlyAccessGrant">ReadOnlyAccessGrant</a></code> | Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks. |
@@ -1305,7 +1305,7 @@ public readonly notificationTopic: ITopic;
 
 - *Type:* aws-cdk-lib.aws_sns.ITopic
 
-SNS topic used to notify when a stack has drifted.
+SNS topic that receives drift and failure notifications.
 
 ---
 
@@ -1390,7 +1390,7 @@ public readonly targetResource: TargetResource;
 
 Tag filter used to select target stacks.
 
-If omitted, all stacks in the account and region are inspected.
+If omitted, every stable stack in the account and region is inspected.
 
 ---
 
