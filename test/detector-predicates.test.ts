@@ -7,7 +7,7 @@ import {
   isDetectionFailed,
   isDetectionInProgress,
   isStackDrifted,
-} from '../src/funcs/detector-predicates';
+} from '../src/funcs/core/detector-predicates';
 
 describe('detector predicates', () => {
   describe('hasNextPage', () => {

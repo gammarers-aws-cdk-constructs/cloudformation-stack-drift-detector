@@ -20,7 +20,7 @@ import {
   isDetectionFailed,
   isDetectionInProgress,
   isStackDrifted,
-} from './detector-predicates';
+} from './core/detector-predicates';
 
 /** Interval between DescribeStackDriftDetectionStatus waits. */
 const DETECTION_WAIT_INTERVAL_SECONDS = 30;
