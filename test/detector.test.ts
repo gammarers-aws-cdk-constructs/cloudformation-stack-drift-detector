@@ -42,7 +42,7 @@ describe('CloudformationStackDriftDetector', () => {
     it('should have a durable lambda function', () => {
       template.hasResourceProperties('AWS::Lambda::Function', Match.objectLike({
         Description: 'src/funcs/detector.lambda.ts',
-        Runtime: 'nodejs22.x',
+        Runtime: 'nodejs24.x',
         Handler: 'index.handler',
         Timeout: 900,
         DurableConfig: {
