@@ -14,14 +14,16 @@ AWS CDK construct that runs CloudFormation stack drift detection on a daily sche
 - Daily EventBridge schedule that invokes a durable Lambda alias
 - Optional tag-based stack selection, or inspect all stable stacks in the account and region
 - SNS notifications when a stack is `DRIFTED`, including modified and deleted resource drifts
+- Per-stack failure isolation: a failed stack is published to the same SNS topic, remaining stacks are still inspected, and the invocation returns succeeded and failed counts
 - Caller-provided SNS topic (the construct does not create a topic)
 - Configurable durable execution timeout and history retention
 - Optional resource read grants so DetectStackDrift can describe resources in target stacks
 - Optional KMS key grant when publishing to an encrypted SNS topic
+- `CloudformationStackDriftDetectorStack`, a stack that deploys the detector
 
 ## How it works
 
-A daily EventBridge rule invokes the detector Lambda `live` alias. The function selects stable CloudFormation stacks (by tag, or every stack in the account and region), runs DetectStackDrift on each stack, waits until detection finishes, and publishes drifted resource details to the caller-provided SNS topic.
+A daily EventBridge rule invokes the detector Lambda `live` alias. The function selects stable CloudFormation stacks (by tag, or every stack in the account and region), runs DetectStackDrift on each stack, waits until detection finishes, and publishes drifted resource details to the caller-provided SNS topic. If detection fails for one stack, the function publishes a failure notification to the same topic and continues with the remaining stacks. The invocation result reports how many stacks succeeded and how many failed.
 
 DetectStackDrift also reads the live configuration of resources in those stacks. Grant those Describe/Get permissions through `grantReadOnlyAccess`, `additionalPolicyStatements`, or the public `role`.
 
@@ -126,9 +128,11 @@ new CloudformationStackDriftDetector(this, 'Detector', {
 DetectStackDrift also needs Describe/Get on resources inside the target stacks. Without those permissions, detection often finishes as `DETECTION_FAILED` or `NOT_CHECKED`. Attach AWS managed `ReadOnlyAccess`, pass least-privilege statements, or grant on the exposed role:
 
 ```typescript
+import { ReadOnlyAccessGrant } from 'cloudformation-stack-drift-detector';
+
 new CloudformationStackDriftDetector(this, 'Detector', {
   notificationTopic: topic,
-  grantReadOnlyAccess: true,
+  grantReadOnlyAccess: ReadOnlyAccessGrant.ENABLED,
 });
 ```
 
@@ -175,9 +179,27 @@ new CloudformationStackDriftDetector(this, 'Detector', {
 });
 ```
 
+### Use the included stack
+
+`CloudformationStackDriftDetectorStack` deploys the same detector. Pass the notification topic from another stack, and any other detector option:
+
+```typescript
+import { App, Stack } from 'aws-cdk-lib';
+import * as sns from 'aws-cdk-lib/aws-sns';
+import { CloudformationStackDriftDetectorStack } from 'cloudformation-stack-drift-detector';
+
+const app = new App();
+const topicStack = new Stack(app, 'TopicStack');
+const topic = new sns.Topic(topicStack, 'DriftNotifications');
+
+new CloudformationStackDriftDetectorStack(app, 'DetectorStack', {
+  notificationTopic: topic,
+});
+```
+
 ## Options
 
-These options apply to `CloudformationStackDriftDetector`.
+These options apply to `CloudformationStackDriftDetector` and `CloudformationStackDriftDetectorStack`. The stack also accepts standard `StackProps`.
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
@@ -187,7 +209,14 @@ These options apply to `CloudformationStackDriftDetector`.
 | `executionTimeout` | `Duration` | No | Maximum duration of a durable execution (default: `Duration.hours(1)`). |
 | `retentionPeriod` | `Duration` | No | How long durable execution history is retained after completion (default: `Duration.days(30)`). |
 | `additionalPolicyStatements` | `iam.PolicyStatement[]` | No | Extra IAM statements attached to the detector Lambda role (for example resource Describe/Get). |
-| `grantReadOnlyAccess` | `boolean` | No | When `true`, attach AWS managed `ReadOnlyAccess` so DetectStackDrift can describe resources (default: `false`). |
+| `grantReadOnlyAccess` | `ReadOnlyAccessGrant` | No | Attach AWS managed `ReadOnlyAccess` when set to `ReadOnlyAccessGrant.ENABLED` (default: `ReadOnlyAccessGrant.DISABLED`). |
+
+### ReadOnlyAccessGrant
+
+| Value | Description |
+|-------|-------------|
+| `ENABLED` | Attach AWS managed `ReadOnlyAccess`. |
+| `DISABLED` | Do not attach `ReadOnlyAccess`. |
 
 ### TargetResource
 
