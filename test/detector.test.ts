@@ -3,7 +3,7 @@ import { Match, Template } from 'aws-cdk-lib/assertions';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as kms from 'aws-cdk-lib/aws-kms';
 import * as sns from 'aws-cdk-lib/aws-sns';
-import { CloudformationStackDriftDetector } from '../src';
+import { CloudformationStackDriftDetector, ReadOnlyAccessGrant } from '../src';
 
 const NOTIFICATION_TOPIC_ARN = 'arn:aws:sns:us-east-1:123456789012:existing-topic';
 
@@ -42,7 +42,7 @@ describe('CloudformationStackDriftDetector', () => {
     it('should have a durable lambda function', () => {
       template.hasResourceProperties('AWS::Lambda::Function', Match.objectLike({
         Description: 'src/funcs/detector.lambda.ts',
-        Runtime: 'nodejs22.x',
+        Runtime: 'nodejs24.x',
         Handler: 'index.handler',
         Timeout: 900,
         DurableConfig: {
@@ -148,7 +148,7 @@ describe('CloudformationStackDriftDetector', () => {
     const stack = createTestStack();
     new CloudformationStackDriftDetector(stack, 'Detector', {
       notificationTopic: getNotificationTopic(stack),
-      grantReadOnlyAccess: true,
+      grantReadOnlyAccess: ReadOnlyAccessGrant.ENABLED,
     });
     const template = Template.fromStack(stack);
 

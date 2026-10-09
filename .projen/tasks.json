@@ -86,11 +86,12 @@
             "esbuild",
             "--bundle",
             "src/funcs/detector.lambda.ts",
-            "--target=node22",
+            "--target=node24",
             "--platform=node",
             "--outfile=assets/funcs/detector.lambda/index.js",
             "--tsconfig=test/tsconfig.json",
-            "--external:@aws-sdk/*"
+            "--external:@aws-sdk/*",
+            "--sourcemap"
           ]
         }
       ]
@@ -104,11 +105,12 @@
             "esbuild",
             "--bundle",
             "src/funcs/detector.lambda.ts",
-            "--target=node22",
+            "--target=node24",
             "--platform=node",
             "--outfile=assets/funcs/detector.lambda/index.js",
             "--tsconfig=test/tsconfig.json",
             "--external:@aws-sdk/*",
+            "--sourcemap",
             "--watch"
           ]
         }
@@ -360,6 +362,7 @@
         {
           "execArgs": [
             "jest",
+            "--silent",
             "--passWithNoTests",
             "--updateSnapshot"
           ],

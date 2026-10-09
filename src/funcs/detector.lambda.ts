@@ -20,7 +20,7 @@ import {
   isDetectionFailed,
   isDetectionInProgress,
   isStackDrifted,
-} from './detector-predicates';
+} from './core/detector-predicates';
 
 /** Interval between DescribeStackDriftDetectionStatus waits. */
 const DETECTION_WAIT_INTERVAL_SECONDS = 30;
@@ -300,30 +300,92 @@ const processStackDrift = async (
   });
 };
 
+/** Counts of stacks processed by one detector invocation. */
+export interface DriftDetectionCounts {
+  /** Stacks whose drift detection finished without throwing. */
+  readonly succeeded: number;
+  /** Stacks whose drift detection threw. */
+  readonly failed: number;
+}
+
+/**
+ * Returns a message for a caught detection failure.
+ *
+ * @param error - Value thrown while detecting drift for one stack.
+ * @returns The error message, or its string form when it is not an Error.
+ */
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+};
+
+/**
+ * Publishes an SNS notification when drift detection fails for one stack.
+ *
+ * @param stackName - Stack whose detection failed.
+ * @param topicArn - SNS topic that receives failure notifications.
+ * @param reason - Failure message recorded for the stack.
+ * @param context - Durable execution context.
+ */
+const publishDetectionFailure = async (
+  stackName: string,
+  topicArn: string,
+  reason: string,
+  context: DurableContext,
+): Promise<void> => {
+  await context.step(`publish-detection-failure-${stackName}`, async () => {
+    const subject = `Stack drift detection failed: ${stackName}`.slice(0, SNS_SUBJECT_MAX_LENGTH);
+    await sns.send(new PublishCommand({
+      TopicArn: topicArn,
+      Subject: subject,
+      Message: JSON.stringify({
+        stackName,
+        reason,
+      }),
+    }));
+  });
+};
+
 /**
  * Discovers target stacks and detects drift sequentially.
  * A failure for one stack does not skip the remaining stacks.
  *
  * @param event - Optional tag filter used to select stacks.
  * @param context - Durable execution context for steps and waits.
+ * @returns How many stacks succeeded and how many failed.
  */
 export const processDriftDetection = async (
   event: DriftDetectionEvent,
   context: DurableContext,
-): Promise<void> => {
+): Promise<DriftDetectionCounts> => {
   const topicArn = getNotificationTopicArn();
   const stackNames = await context.step('get-target-stack-names', async () => {
     return getTargetStackNames(event ?? {});
   });
 
+  let succeeded = 0;
+  let failed = 0;
+
   for (const stackName of stackNames) {
     try {
       await processStackDrift(stackName, topicArn, context);
+      succeeded += 1;
     } catch (error) {
-      // One failed stack must not skip drift detection for the remaining stacks.
+      failed += 1;
       console.error(`Drift detection failed for stack ${stackName}`, error);
+
+      try {
+        await publishDetectionFailure(stackName, topicArn, getErrorMessage(error), context);
+      } catch (notifyError) {
+        // A failed notification must not skip the remaining stacks.
+        console.error(`Failed to publish drift detection failure for stack ${stackName}`, notifyError);
+      }
     }
   }
+
+  return { succeeded, failed };
 };
 
 /** Durable Lambda handler wrapping {@link processDriftDetection}. */

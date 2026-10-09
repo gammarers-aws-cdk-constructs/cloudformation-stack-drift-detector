@@ -58,9 +58,14 @@ const mockInSyncDetection = (detectionId: string): void => {
   });
 };
 
+const publishedMessages = (): Array<Record<string, unknown>> => {
+  return snsMock.commandCalls(PublishCommand).map((call) => {
+    return JSON.parse(call.args[0].input.Message ?? '{}') as Record<string, unknown>;
+  });
+};
+
 const publishedMessage = (): Record<string, unknown> => {
-  const input = snsMock.commandCalls(PublishCommand)[0].args[0].input;
-  return JSON.parse(input.Message ?? '{}') as Record<string, unknown>;
+  return publishedMessages()[0];
 };
 
 describe('processDriftDetection', () => {
@@ -255,7 +260,10 @@ describe('processDriftDetection', () => {
     });
     snsMock.on(PublishCommand).resolves({});
 
-    await processDriftDetection({}, createFakeDurableContext());
+    await expect(processDriftDetection({}, createFakeDurableContext())).resolves.toEqual({
+      succeeded: 2,
+      failed: 0,
+    });
 
     expect(cloudFormationMock).toHaveReceivedCommandTimes(DetectStackDriftCommand, 2);
     expect(snsMock).toHaveReceivedCommandTimes(PublishCommand, 1);
@@ -342,11 +350,24 @@ describe('processDriftDetection', () => {
     snsMock.on(PublishCommand).resolves({});
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
-    await processDriftDetection({}, createFakeDurableContext());
+    await expect(processDriftDetection({}, createFakeDurableContext())).resolves.toEqual({
+      succeeded: 1,
+      failed: 1,
+    });
 
     expect(errorSpy).toHaveBeenCalled();
-    expect(snsMock).toHaveReceivedCommandTimes(PublishCommand, 1);
-    expect(publishedMessage().stackName).toBe('DriftedStack');
+    expect(snsMock).toHaveReceivedCommandTimes(PublishCommand, 2);
+    expect(snsMock.commandCalls(PublishCommand)[0].args[0].input).toEqual(
+      expect.objectContaining({
+        TopicArn: TOPIC_ARN,
+        Subject: 'Stack drift detection failed: FailingStack',
+      }),
+    );
+    expect(publishedMessages()[0]).toEqual({
+      stackName: 'FailingStack',
+      reason: 'Drift detection failed for stack FailingStack: access denied',
+    });
+    expect(publishedMessages()[1].stackName).toBe('DriftedStack');
     errorSpy.mockRestore();
   });
 
@@ -361,9 +382,13 @@ describe('processDriftDetection', () => {
       DetectionStatus: 'DETECTION_FAILED',
       DetectionStatusReason: 'access denied',
     });
+    snsMock.on(PublishCommand).resolves({});
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
-    await expect(processDriftDetection({}, createFakeDurableContext())).resolves.toBeUndefined();
+    await expect(processDriftDetection({}, createFakeDurableContext())).resolves.toEqual({
+      succeeded: 0,
+      failed: 1,
+    });
 
     expect(errorSpy).toHaveBeenCalledWith(
       'Drift detection failed for stack PlainStack',
@@ -371,7 +396,11 @@ describe('processDriftDetection', () => {
         message: 'Drift detection failed for stack PlainStack: access denied',
       }),
     );
-    expect(snsMock).not.toHaveReceivedCommand(PublishCommand);
+    expect(snsMock).toHaveReceivedCommandTimes(PublishCommand, 1);
+    expect(publishedMessages()[0]).toEqual({
+      stackName: 'PlainStack',
+      reason: 'Drift detection failed for stack PlainStack: access denied',
+    });
     errorSpy.mockRestore();
   });
 
@@ -380,9 +409,13 @@ describe('processDriftDetection', () => {
       StackSummaries: [createStackSummary('PlainStack')],
     });
     cloudFormationMock.on(DetectStackDriftCommand).resolves({});
+    snsMock.on(PublishCommand).resolves({});
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
-    await expect(processDriftDetection({}, createFakeDurableContext())).resolves.toBeUndefined();
+    await expect(processDriftDetection({}, createFakeDurableContext())).resolves.toEqual({
+      succeeded: 0,
+      failed: 1,
+    });
 
     expect(errorSpy).toHaveBeenCalledWith(
       'Drift detection failed for stack PlainStack',
@@ -390,7 +423,88 @@ describe('processDriftDetection', () => {
         message: 'DetectStackDrift did not return a detection ID for stack PlainStack',
       }),
     );
-    expect(snsMock).not.toHaveReceivedCommand(PublishCommand);
+    expect(snsMock).toHaveReceivedCommandTimes(PublishCommand, 1);
+    expect(publishedMessages()[0]).toEqual({
+      stackName: 'PlainStack',
+      reason: 'DetectStackDrift did not return a detection ID for stack PlainStack',
+    });
+    errorSpy.mockRestore();
+  });
+
+  it('continues when DetectStackDrift rejects for one stack', async () => {
+    cloudFormationMock.on(ListStacksCommand).resolves({
+      StackSummaries: [
+        createStackSummary('UpdatingStack'),
+        createStackSummary('DriftedStack'),
+      ],
+    });
+    cloudFormationMock.on(DetectStackDriftCommand)
+      .rejectsOnce(new Error('Stack UpdatingStack is in UPDATE_IN_PROGRESS'))
+      .resolves({
+        StackDriftDetectionId: 'det-after-reject',
+      });
+    cloudFormationMock.on(DescribeStackDriftDetectionStatusCommand).resolves({
+      DetectionStatus: 'DETECTION_COMPLETE',
+      StackDriftStatus: 'DRIFTED',
+    });
+    cloudFormationMock.on(DescribeStackResourceDriftsCommand).resolves({
+      StackResourceDrifts: [createResourceDrift('Bucket')],
+    });
+    snsMock.on(PublishCommand).resolves({});
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await expect(processDriftDetection({}, createFakeDurableContext())).resolves.toEqual({
+      succeeded: 1,
+      failed: 1,
+    });
+
+    expect(cloudFormationMock).toHaveReceivedCommandTimes(DetectStackDriftCommand, 2);
+    expect(publishedMessages().map((message) => message.stackName)).toEqual([
+      'UpdatingStack',
+      'DriftedStack',
+    ]);
+    expect(publishedMessages()[0].reason).toBe('Stack UpdatingStack is in UPDATE_IN_PROGRESS');
+    errorSpy.mockRestore();
+  });
+
+  it('continues when the failure notification cannot be published', async () => {
+    cloudFormationMock.on(ListStacksCommand).resolves({
+      StackSummaries: [
+        createStackSummary('FailingStack'),
+        createStackSummary('DriftedStack'),
+      ],
+    });
+    cloudFormationMock.on(DetectStackDriftCommand).resolves({
+      StackDriftDetectionId: 'det-notify-fail',
+    });
+    cloudFormationMock.on(DescribeStackDriftDetectionStatusCommand)
+      .resolvesOnce({
+        DetectionStatus: 'DETECTION_FAILED',
+        DetectionStatusReason: 'access denied',
+      })
+      .resolvesOnce({
+        DetectionStatus: 'DETECTION_COMPLETE',
+        StackDriftStatus: 'DRIFTED',
+      });
+    cloudFormationMock.on(DescribeStackResourceDriftsCommand).resolves({
+      StackResourceDrifts: [createResourceDrift('Bucket')],
+    });
+    snsMock.on(PublishCommand)
+      .rejectsOnce(new Error('sns unavailable'))
+      .resolves({});
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await expect(processDriftDetection({}, createFakeDurableContext())).resolves.toEqual({
+      succeeded: 1,
+      failed: 1,
+    });
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Failed to publish drift detection failure for stack FailingStack',
+      expect.objectContaining({ message: 'sns unavailable' }),
+    );
+    expect(snsMock).toHaveReceivedCommandTimes(PublishCommand, 2);
+    expect(publishedMessages()[1].stackName).toBe('DriftedStack');
     errorSpy.mockRestore();
   });
 });
