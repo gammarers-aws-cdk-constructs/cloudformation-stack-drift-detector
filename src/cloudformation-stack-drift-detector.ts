@@ -56,15 +56,15 @@ export interface TargetResource {
 }
 
 /**
- * Properties for {@link CloudformationStackDriftDetector}.
+ * Properties for {@link CloudFormationStackDriftDetector}.
  */
-export interface CloudformationStackDriftDetectorProps {
+export interface CloudFormationStackDriftDetectorProps {
   /**
    * SNS topic that receives drift and failure notifications.
    */
   readonly notificationTopic: sns.ITopic;
   /**
-   * Customer-managed KMS key that encrypts {@link CloudformationStackDriftDetectorProps.notificationTopic}.
+   * Customer-managed KMS key that encrypts {@link CloudFormationStackDriftDetectorProps.notificationTopic}.
    *
    * `grantPublish` already grants KMS when the topic is a `sns.Topic` with `masterKey`.
    * Pass this for imported topics (`fromTopicArn`), where the encryption key is otherwise unknown.
@@ -113,7 +113,7 @@ export interface CloudformationStackDriftDetectorProps {
  * Target stacks are selected by {@link TargetResource} when provided. When omitted,
  * every stable stack in the account and region is inspected.
  */
-export class CloudformationStackDriftDetector extends Construct {
+export class CloudFormationStackDriftDetector extends Construct {
   /**
    * SNS topic that receives drift and failure notifications.
    */
@@ -122,7 +122,7 @@ export class CloudformationStackDriftDetector extends Construct {
   /**
    * IAM role used by the detector Lambda.
    * Attach extra Describe/Get permissions for resources in target stacks when
-   * {@link CloudformationStackDriftDetectorProps.grantReadOnlyAccess} is not enough.
+   * {@link CloudFormationStackDriftDetectorProps.grantReadOnlyAccess} is not enough.
    */
   readonly role: iam.IRole;
 
@@ -133,7 +133,7 @@ export class CloudformationStackDriftDetector extends Construct {
    * @param id - Construct id.
    * @param props - Notification topic, IAM grants, optional tag filter, and durable execution settings.
    */
-  constructor(scope: Construct, id: string, props: CloudformationStackDriftDetectorProps) {
+  constructor(scope: Construct, id: string, props: CloudFormationStackDriftDetectorProps) {
     super(scope, id);
 
     this.notificationTopic = props.notificationTopic;

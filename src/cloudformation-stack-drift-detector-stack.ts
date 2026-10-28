@@ -1,19 +1,19 @@
 import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
-  CloudformationStackDriftDetector,
-  CloudformationStackDriftDetectorProps,
+  CloudFormationStackDriftDetector,
+  CloudFormationStackDriftDetectorProps,
 } from './cloudformation-stack-drift-detector';
 
 /**
- * Properties for {@link CloudformationStackDriftDetectorStack}.
+ * Properties for {@link CloudFormationStackDriftDetectorStack}.
  */
-export interface CloudformationStackDriftDetectorStackProps extends CloudformationStackDriftDetectorProps, StackProps {}
+export interface CloudFormationStackDriftDetectorStackProps extends CloudFormationStackDriftDetectorProps, StackProps {}
 
 /**
- * CDK stack that deploys {@link CloudformationStackDriftDetector}.
+ * CDK stack that deploys {@link CloudFormationStackDriftDetector}.
  */
-export class CloudformationStackDriftDetectorStack extends Stack {
+export class CloudFormationStackDriftDetectorStack extends Stack {
   /**
    * Creates a stack containing the drift detector.
    *
@@ -21,10 +21,10 @@ export class CloudformationStackDriftDetectorStack extends Stack {
    * @param id - Stack id.
    * @param props - Detector settings and standard stack settings.
    */
-  constructor(scope: Construct, id: string, props: CloudformationStackDriftDetectorStackProps) {
+  constructor(scope: Construct, id: string, props: CloudFormationStackDriftDetectorStackProps) {
     super(scope, id, props);
 
-    new CloudformationStackDriftDetector(this, 'Detector', {
+    new CloudFormationStackDriftDetector(this, 'Detector', {
       notificationTopic: props.notificationTopic,
       notificationTopicKey: props.notificationTopicKey,
       targetResource: props.targetResource,
