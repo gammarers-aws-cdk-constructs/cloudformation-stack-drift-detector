@@ -55,7 +55,7 @@ const sns = new SNSClient({});
 
 /**
  * EventBridge input that selects stacks for drift detection.
- * When `tagKey` is omitted, all stable stacks are inspected.
+ * With or without `tagKey`, only stacks in a stable status are inspected.
  */
 export interface DriftDetectionEvent {
   /** Tag key used to discover CloudFormation stacks. */
@@ -108,41 +108,6 @@ const getStackNameFromArn = (resourceArn: string): string => {
 };
 
 /**
- * Lists CloudFormation stacks that match the given tag filter.
- *
- * @param tagKey - Tag key to match.
- * @param tagValues - Optional values for `tagKey`. An empty or omitted list matches any value.
- * @returns Stack names discovered by the Resource Groups Tagging API.
- */
-const getTaggedStackNames = async (tagKey: string, tagValues?: string[]): Promise<string[]> => {
-  const stackNames: string[] = [];
-  let paginationToken: string | undefined;
-
-  do {
-    const response = await resourceGroupsTagging.send(new GetResourcesCommand({
-      ResourceTypeFilters: [CLOUDFORMATION_STACK_RESOURCE_TYPE],
-      TagFilters: [
-        {
-          Key: tagKey,
-          Values: hasTagFilterValues(tagValues) ? tagValues : undefined,
-        },
-      ],
-      PaginationToken: paginationToken,
-    }));
-
-    for (const mapping of response.ResourceTagMappingList ?? []) {
-      if (mapping.ResourceARN) {
-        stackNames.push(getStackNameFromArn(mapping.ResourceARN));
-      }
-    }
-
-    paginationToken = response.PaginationToken;
-  } while (hasNextPage(paginationToken));
-
-  return stackNames;
-};
-
-/**
  * Lists all stable CloudFormation stacks in the current account and region.
  *
  * @returns Stack names in a complete, non-transitional status.
@@ -167,6 +132,44 @@ const getAllStackNames = async (): Promise<string[]> => {
   } while (hasNextPage(nextToken));
 
   return stackNames;
+};
+
+/**
+ * Lists tagged CloudFormation stacks that are in a stable status.
+ * The tagging API also returns stacks that are updating or deleting, so names
+ * are kept only when ListStacks returns them in a stable status.
+ *
+ * @param tagKey - Tag key to match.
+ * @param tagValues - Optional values for `tagKey`. An empty or omitted list matches any value.
+ * @returns Tagged stack names in a complete, non-transitional status, in tagging API order.
+ */
+const getTaggedStackNames = async (tagKey: string, tagValues?: string[]): Promise<string[]> => {
+  const taggedStackNames: string[] = [];
+  let paginationToken: string | undefined;
+
+  do {
+    const response = await resourceGroupsTagging.send(new GetResourcesCommand({
+      ResourceTypeFilters: [CLOUDFORMATION_STACK_RESOURCE_TYPE],
+      TagFilters: [
+        {
+          Key: tagKey,
+          Values: hasTagFilterValues(tagValues) ? tagValues : undefined,
+        },
+      ],
+      PaginationToken: paginationToken,
+    }));
+
+    for (const mapping of response.ResourceTagMappingList ?? []) {
+      if (mapping.ResourceARN) {
+        taggedStackNames.push(getStackNameFromArn(mapping.ResourceARN));
+      }
+    }
+
+    paginationToken = response.PaginationToken;
+  } while (hasNextPage(paginationToken));
+
+  const stableStackNames = new Set(await getAllStackNames());
+  return taggedStackNames.filter((stackName) => stableStackNames.has(stackName));
 };
 
 /**

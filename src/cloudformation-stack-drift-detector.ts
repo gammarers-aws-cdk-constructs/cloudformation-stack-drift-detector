@@ -42,7 +42,8 @@ export enum ReadOnlyAccessGrant {
 
 /**
  * Tag filter used to select CloudFormation stacks for drift detection.
- * When `tagValues` is omitted, all stacks that have `tagKey` are selected.
+ * Only stacks in a stable status are inspected. When `tagValues` is omitted,
+ * every stable stack that has `tagKey` is selected.
  */
 export interface TargetResource {
   /**
@@ -74,6 +75,9 @@ export interface CloudFormationStackDriftDetectorProps {
   readonly notificationTopicKey?: kms.IKey;
   /**
    * Tag filter used to select target stacks.
+   * Tagged stacks are limited to stable statuses: `CREATE_COMPLETE`,
+   * `UPDATE_COMPLETE`, `UPDATE_ROLLBACK_COMPLETE`, `IMPORT_COMPLETE`, and
+   * `IMPORT_ROLLBACK_COMPLETE`.
    * If omitted, every stable stack in the account and region is inspected.
    */
   readonly targetResource?: TargetResource;
@@ -110,8 +114,9 @@ export interface CloudFormationStackDriftDetectorProps {
  * CDK construct that runs CloudFormation stack drift detection daily and publishes
  * drifted stacks to SNS.
  *
- * Target stacks are selected by {@link TargetResource} when provided. When omitted,
- * every stable stack in the account and region is inspected.
+ * Target stacks are selected by {@link TargetResource} when provided. Tagged stacks
+ * are still limited to stable statuses. When the filter is omitted, every stable
+ * stack in the account and region is inspected.
  */
 export class CloudFormationStackDriftDetector extends Construct {
   /**
@@ -234,7 +239,7 @@ export class CloudFormationStackDriftDetector extends Construct {
   /**
    * Builds the EventBridge target payload passed to the detector Lambda.
    *
-   * @param targetResource - Optional tag filter. When omitted, an empty payload selects all stacks.
+   * @param targetResource - Optional tag filter. When omitted, an empty payload selects all stable stacks.
    * @returns Tag key and values for the Lambda event, or an empty object.
    */
   private getEventInput(targetResource?: TargetResource): { tagKey?: string; tagValues?: string[] } {
