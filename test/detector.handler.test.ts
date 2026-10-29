@@ -14,7 +14,7 @@ import {
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
-import { processDriftDetection } from '../src/funcs/detector.lambda';
+import { processDriftDetection, DriftDetectionEvent } from '../src/funcs/detector.lambda';
 
 const cloudFormationMock = mockClient(CloudFormationClient);
 const taggingMock = mockClient(ResourceGroupsTaggingAPIClient);
@@ -544,5 +544,143 @@ describe('processDriftDetection', () => {
     expect(snsMock).toHaveReceivedCommandTimes(PublishCommand, 2);
     expect(publishedMessages()[1].stackName).toBe('DriftedStack');
     errorSpy.mockRestore();
+  });
+
+  it('publishes the string form when detection throws a non-Error', async () => {
+    cloudFormationMock.on(ListStacksCommand).resolves({
+      StackSummaries: [createStackSummary('PlainStack')],
+    });
+    snsMock.on(PublishCommand).resolves({});
+    const context = createFakeDurableContext();
+    const step = context.step as jest.Mock;
+    step.mockImplementation(async (name: string, fn: () => Promise<unknown>) => {
+      if (name === 'detect-stack-drift-PlainStack') {
+        throw 'plain failure';
+      }
+      return fn();
+    });
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await expect(processDriftDetection({}, context)).resolves.toEqual({
+      succeeded: 0,
+      failed: 1,
+    });
+
+    expect(publishedMessages()[0]).toEqual({
+      stackName: 'PlainStack',
+      reason: 'plain failure',
+    });
+    errorSpy.mockRestore();
+  });
+
+  it('ignores stack summaries that have no name', async () => {
+    cloudFormationMock.on(ListStacksCommand).resolves({
+      StackSummaries: [{ CreationTime: STACK_DATE, StackStatus: 'CREATE_COMPLETE' }],
+    });
+
+    await expect(processDriftDetection({}, createFakeDurableContext())).resolves.toEqual({
+      succeeded: 0,
+      failed: 0,
+    });
+
+    expect(cloudFormationMock).not.toHaveReceivedCommand(DetectStackDriftCommand);
+  });
+
+  it('treats a missing stack summary list as no stacks', async () => {
+    cloudFormationMock.on(ListStacksCommand).resolves({});
+
+    await expect(processDriftDetection({}, createFakeDurableContext())).resolves.toEqual({
+      succeeded: 0,
+      failed: 0,
+    });
+
+    expect(cloudFormationMock).not.toHaveReceivedCommand(DetectStackDriftCommand);
+  });
+
+  it('ignores tagged resources that have no stack ARN', async () => {
+    taggingMock.on(GetResourcesCommand).resolves({
+      ResourceTagMappingList: [{}],
+    });
+    mockStableStacks('TaggedStack');
+
+    await expect(processDriftDetection(
+      { tagKey: 'DriftDetection', tagValues: ['enabled'] },
+      createFakeDurableContext(),
+    )).resolves.toEqual({
+      succeeded: 0,
+      failed: 0,
+    });
+
+    expect(cloudFormationMock).not.toHaveReceivedCommand(DetectStackDriftCommand);
+  });
+
+  it('treats a missing tag mapping list as no stacks', async () => {
+    taggingMock.on(GetResourcesCommand).resolves({});
+    mockStableStacks('TaggedStack');
+
+    await expect(processDriftDetection(
+      { tagKey: 'DriftDetection', tagValues: ['enabled'] },
+      createFakeDurableContext(),
+    )).resolves.toEqual({
+      succeeded: 0,
+      failed: 0,
+    });
+
+    expect(cloudFormationMock).not.toHaveReceivedCommand(DetectStackDriftCommand);
+  });
+
+  it('publishes an empty drift list when resource drifts are omitted', async () => {
+    cloudFormationMock.on(ListStacksCommand).resolves({
+      StackSummaries: [createStackSummary('PlainStack')],
+    });
+    cloudFormationMock.on(DetectStackDriftCommand).resolves({
+      StackDriftDetectionId: 'det-empty-drifts',
+    });
+    cloudFormationMock.on(DescribeStackDriftDetectionStatusCommand).resolves({
+      DetectionStatus: 'DETECTION_COMPLETE',
+      StackDriftStatus: 'DRIFTED',
+    });
+    cloudFormationMock.on(DescribeStackResourceDriftsCommand).resolves({});
+    snsMock.on(PublishCommand).resolves({});
+
+    await processDriftDetection({}, createFakeDurableContext());
+
+    expect(publishedMessage()).toEqual({
+      stackName: 'PlainStack',
+      stackDriftStatus: 'DRIFTED',
+      driftedResources: [],
+    });
+  });
+
+  it('uses an unknown reason when detection fails without a reason', async () => {
+    cloudFormationMock.on(ListStacksCommand).resolves({
+      StackSummaries: [createStackSummary('PlainStack')],
+    });
+    cloudFormationMock.on(DetectStackDriftCommand).resolves({
+      StackDriftDetectionId: 'det-no-reason',
+    });
+    cloudFormationMock.on(DescribeStackDriftDetectionStatusCommand).resolves({
+      DetectionStatus: 'DETECTION_FAILED',
+    });
+    snsMock.on(PublishCommand).resolves({});
+
+    await processDriftDetection({}, createFakeDurableContext());
+
+    expect(publishedMessages()[0]).toEqual({
+      stackName: 'PlainStack',
+      reason: 'Drift detection failed for stack PlainStack: unknown reason',
+    });
+  });
+
+  it('lists every stable stack when the event is omitted', async () => {
+    cloudFormationMock.on(ListStacksCommand).resolves({
+      StackSummaries: [createStackSummary('PlainStack')],
+    });
+    mockInSyncDetection('det-omitted-event');
+
+    await processDriftDetection(undefined as unknown as DriftDetectionEvent, createFakeDurableContext());
+
+    expect(cloudFormationMock).toHaveReceivedCommand(ListStacksCommand);
+    expect(cloudFormationMock).toHaveReceivedCommandTimes(DetectStackDriftCommand, 1);
   });
 });
