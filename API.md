@@ -2,30 +2,31 @@
 
 ## Constructs <a name="Constructs" id="Constructs"></a>
 
-### CloudformationStackDriftDetector <a name="CloudformationStackDriftDetector" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetector"></a>
+### CloudFormationStackDriftDetector <a name="CloudFormationStackDriftDetector" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetector"></a>
 
 CDK construct that runs CloudFormation stack drift detection daily and publishes drifted stacks to SNS.
 
-Target stacks are selected by {@link TargetResource} when provided. When omitted,
+Target stacks are selected by {@link TargetResource} when provided.
+Tagged stacks are still limited to stable statuses. When the filter is omitted,
 every stable stack in the account and region is inspected.
 
-#### Initializers <a name="Initializers" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetector.Initializer"></a>
+#### Initializers <a name="Initializers" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.Initializer"></a>
 
 ```typescript
-import { CloudformationStackDriftDetector } from 'cloudformation-stack-drift-detector'
+import { CloudFormationStackDriftDetector } from 'cloudformation-stack-drift-detector'
 
-new CloudformationStackDriftDetector(scope: Construct, id: string, props: CloudformationStackDriftDetectorProps)
+new CloudFormationStackDriftDetector(scope: Construct, id: string, props: CloudFormationStackDriftDetectorProps)
 ```
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.Initializer.parameter.scope">scope</a></code> | <code>constructs.Construct</code> | - Parent construct. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.Initializer.parameter.id">id</a></code> | <code>string</code> | - Construct id. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.Initializer.parameter.props">props</a></code> | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps">CloudformationStackDriftDetectorProps</a></code> | - Notification topic, IAM grants, optional tag filter, and durable execution settings. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.Initializer.parameter.scope">scope</a></code> | <code>constructs.Construct</code> | - Parent construct. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.Initializer.parameter.id">id</a></code> | <code>string</code> | - Construct id. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.Initializer.parameter.props">props</a></code> | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps">CloudFormationStackDriftDetectorProps</a></code> | - Notification topic, IAM grants, optional tag filter, and durable execution settings. |
 
 ---
 
-##### `scope`<sup>Required</sup> <a name="scope" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetector.Initializer.parameter.scope"></a>
+##### `scope`<sup>Required</sup> <a name="scope" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.Initializer.parameter.scope"></a>
 
 - *Type:* constructs.Construct
 
@@ -33,7 +34,7 @@ Parent construct.
 
 ---
 
-##### `id`<sup>Required</sup> <a name="id" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetector.Initializer.parameter.id"></a>
+##### `id`<sup>Required</sup> <a name="id" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.Initializer.parameter.id"></a>
 
 - *Type:* string
 
@@ -41,9 +42,9 @@ Construct id.
 
 ---
 
-##### `props`<sup>Required</sup> <a name="props" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetector.Initializer.parameter.props"></a>
+##### `props`<sup>Required</sup> <a name="props" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.Initializer.parameter.props"></a>
 
-- *Type:* <a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps">CloudformationStackDriftDetectorProps</a>
+- *Type:* <a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps">CloudFormationStackDriftDetectorProps</a>
 
 Notification topic, IAM grants, optional tag filter, and durable execution settings.
 
@@ -53,12 +54,12 @@ Notification topic, IAM grants, optional tag filter, and durable execution setti
 
 | **Name** | **Description** |
 | --- | --- |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.toString">toString</a></code> | Returns a string representation of this construct. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.with">with</a></code> | Applies one or more mixins to this construct. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.toString">toString</a></code> | Returns a string representation of this construct. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.with">with</a></code> | Applies one or more mixins to this construct. |
 
 ---
 
-##### `toString` <a name="toString" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetector.toString"></a>
+##### `toString` <a name="toString" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.toString"></a>
 
 ```typescript
 public toString(): string
@@ -66,7 +67,7 @@ public toString(): string
 
 Returns a string representation of this construct.
 
-##### `with` <a name="with" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetector.with"></a>
+##### `with` <a name="with" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.with"></a>
 
 ```typescript
 public with(mixins: ...IMixin[]): IConstruct
@@ -79,7 +80,7 @@ start of the call, so constructs added by a mixin will not be visited.
 Use multiple `with()` calls if subsequent mixins should apply to added
 constructs.
 
-###### `mixins`<sup>Required</sup> <a name="mixins" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetector.with.parameter.mixins"></a>
+###### `mixins`<sup>Required</sup> <a name="mixins" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.with.parameter.mixins"></a>
 
 - *Type:* ...constructs.IMixin[]
 
@@ -91,16 +92,16 @@ The mixins to apply.
 
 | **Name** | **Description** |
 | --- | --- |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.isConstruct">isConstruct</a></code> | Checks if `x` is a construct. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.isConstruct">isConstruct</a></code> | Checks if `x` is a construct. |
 
 ---
 
-##### `isConstruct` <a name="isConstruct" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetector.isConstruct"></a>
+##### `isConstruct` <a name="isConstruct" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.isConstruct"></a>
 
 ```typescript
-import { CloudformationStackDriftDetector } from 'cloudformation-stack-drift-detector'
+import { CloudFormationStackDriftDetector } from 'cloudformation-stack-drift-detector'
 
-CloudformationStackDriftDetector.isConstruct(x: any)
+CloudFormationStackDriftDetector.isConstruct(x: any)
 ```
 
 Checks if `x` is a construct.
@@ -119,7 +120,7 @@ library can be accidentally installed, and `instanceof` will behave
 unpredictably. It is safest to avoid using `instanceof`, and using
 this type-testing method instead.
 
-###### `x`<sup>Required</sup> <a name="x" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetector.isConstruct.parameter.x"></a>
+###### `x`<sup>Required</sup> <a name="x" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.isConstruct.parameter.x"></a>
 
 - *Type:* any
 
@@ -131,13 +132,13 @@ Any object.
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic that receives drift and failure notifications. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetector.property.role">role</a></code> | <code>aws-cdk-lib.aws_iam.IRole</code> | IAM role used by the detector Lambda. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic that receives drift and failure notifications. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.property.role">role</a></code> | <code>aws-cdk-lib.aws_iam.IRole</code> | IAM role used by the detector Lambda. |
 
 ---
 
-##### `node`<sup>Required</sup> <a name="node" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetector.property.node"></a>
+##### `node`<sup>Required</sup> <a name="node" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.property.node"></a>
 
 ```typescript
 public readonly node: Node;
@@ -149,7 +150,7 @@ The tree node.
 
 ---
 
-##### `notificationTopic`<sup>Required</sup> <a name="notificationTopic" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetector.property.notificationTopic"></a>
+##### `notificationTopic`<sup>Required</sup> <a name="notificationTopic" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.property.notificationTopic"></a>
 
 ```typescript
 public readonly notificationTopic: ITopic;
@@ -161,7 +162,7 @@ SNS topic that receives drift and failure notifications.
 
 ---
 
-##### `role`<sup>Required</sup> <a name="role" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetector.property.role"></a>
+##### `role`<sup>Required</sup> <a name="role" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.property.role"></a>
 
 ```typescript
 public readonly role: IRole;
@@ -172,32 +173,32 @@ public readonly role: IRole;
 IAM role used by the detector Lambda.
 
 Attach extra Describe/Get permissions for resources in target stacks when
-{@link CloudformationStackDriftDetectorProps.grantReadOnlyAccess} is not enough.
+{@link CloudFormationStackDriftDetectorProps.grantReadOnlyAccess} is not enough.
 
 ---
 
 
-### CloudformationStackDriftDetectorStack <a name="CloudformationStackDriftDetectorStack" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack"></a>
+### CloudFormationStackDriftDetectorStack <a name="CloudFormationStackDriftDetectorStack" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack"></a>
 
-CDK stack that deploys {@link CloudformationStackDriftDetector}.
+CDK stack that deploys {@link CloudFormationStackDriftDetector}.
 
-#### Initializers <a name="Initializers" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.Initializer"></a>
+#### Initializers <a name="Initializers" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.Initializer"></a>
 
 ```typescript
-import { CloudformationStackDriftDetectorStack } from 'cloudformation-stack-drift-detector'
+import { CloudFormationStackDriftDetectorStack } from 'cloudformation-stack-drift-detector'
 
-new CloudformationStackDriftDetectorStack(scope: Construct, id: string, props: CloudformationStackDriftDetectorStackProps)
+new CloudFormationStackDriftDetectorStack(scope: Construct, id: string, props: CloudFormationStackDriftDetectorStackProps)
 ```
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.Initializer.parameter.scope">scope</a></code> | <code>constructs.Construct</code> | - Parent construct, usually an App. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.Initializer.parameter.id">id</a></code> | <code>string</code> | - Stack id. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.Initializer.parameter.props">props</a></code> | <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps">CloudformationStackDriftDetectorStackProps</a></code> | - Detector settings and standard stack settings. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.Initializer.parameter.scope">scope</a></code> | <code>constructs.Construct</code> | - Parent construct, usually an App. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.Initializer.parameter.id">id</a></code> | <code>string</code> | - Stack id. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.Initializer.parameter.props">props</a></code> | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps">CloudFormationStackDriftDetectorStackProps</a></code> | - Detector settings and standard stack settings. |
 
 ---
 
-##### `scope`<sup>Required</sup> <a name="scope" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.Initializer.parameter.scope"></a>
+##### `scope`<sup>Required</sup> <a name="scope" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.Initializer.parameter.scope"></a>
 
 - *Type:* constructs.Construct
 
@@ -205,7 +206,7 @@ Parent construct, usually an App.
 
 ---
 
-##### `id`<sup>Required</sup> <a name="id" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.Initializer.parameter.id"></a>
+##### `id`<sup>Required</sup> <a name="id" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.Initializer.parameter.id"></a>
 
 - *Type:* string
 
@@ -213,9 +214,9 @@ Stack id.
 
 ---
 
-##### `props`<sup>Required</sup> <a name="props" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.Initializer.parameter.props"></a>
+##### `props`<sup>Required</sup> <a name="props" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.Initializer.parameter.props"></a>
 
-- *Type:* <a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps">CloudformationStackDriftDetectorStackProps</a>
+- *Type:* <a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps">CloudFormationStackDriftDetectorStackProps</a>
 
 Detector settings and standard stack settings.
 
@@ -225,28 +226,28 @@ Detector settings and standard stack settings.
 
 | **Name** | **Description** |
 | --- | --- |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.toString">toString</a></code> | Returns a string representation of this construct. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.with">with</a></code> | Applies one or more mixins to this construct. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.addDependency">addDependency</a></code> | Add a dependency between this stack and another stack. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.addMetadata">addMetadata</a></code> | Adds an arbitrary key-value pair, with information you want to record about the stack. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.addStackTag">addStackTag</a></code> | Configure a stack tag. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.addTransform">addTransform</a></code> | Add a Transform to this stack. A Transform is a macro that AWS CloudFormation uses to process your template. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.exportStringListValue">exportStringListValue</a></code> | Create a CloudFormation Export for a string list value. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.exportValue">exportValue</a></code> | Create a CloudFormation Export for a string value. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.formatArn">formatArn</a></code> | Creates an ARN from components. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.getLogicalId">getLogicalId</a></code> | Allocates a stack-unique CloudFormation-compatible logical identity for a specific resource. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.regionalFact">regionalFact</a></code> | Look up a fact value for the given fact for the region of this stack. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.removeStackTag">removeStackTag</a></code> | Remove a stack tag. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.renameLogicalId">renameLogicalId</a></code> | Rename a generated logical identities. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.reportMissingContextKey">reportMissingContextKey</a></code> | Indicate that a context key was expected. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.resolve">resolve</a></code> | Resolve a tokenized value in the context of the current stack. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.splitArn">splitArn</a></code> | Splits the provided ARN into its components. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.toJsonString">toJsonString</a></code> | Convert an object, potentially containing tokens, to a JSON string. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.toYamlString">toYamlString</a></code> | Convert an object, potentially containing tokens, to a YAML string. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.toString">toString</a></code> | Returns a string representation of this construct. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.with">with</a></code> | Applies one or more mixins to this construct. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.addDependency">addDependency</a></code> | Add a dependency between this stack and another stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.addMetadata">addMetadata</a></code> | Adds an arbitrary key-value pair, with information you want to record about the stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.addStackTag">addStackTag</a></code> | Configure a stack tag. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.addTransform">addTransform</a></code> | Add a Transform to this stack. A Transform is a macro that AWS CloudFormation uses to process your template. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.exportStringListValue">exportStringListValue</a></code> | Create a CloudFormation Export for a string list value. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.exportValue">exportValue</a></code> | Create a CloudFormation Export for a string value. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.formatArn">formatArn</a></code> | Creates an ARN from components. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.getLogicalId">getLogicalId</a></code> | Allocates a stack-unique CloudFormation-compatible logical identity for a specific resource. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.regionalFact">regionalFact</a></code> | Look up a fact value for the given fact for the region of this stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.removeStackTag">removeStackTag</a></code> | Remove a stack tag. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.renameLogicalId">renameLogicalId</a></code> | Rename a generated logical identities. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.reportMissingContextKey">reportMissingContextKey</a></code> | Indicate that a context key was expected. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.resolve">resolve</a></code> | Resolve a tokenized value in the context of the current stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.splitArn">splitArn</a></code> | Splits the provided ARN into its components. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.toJsonString">toJsonString</a></code> | Convert an object, potentially containing tokens, to a JSON string. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.toYamlString">toYamlString</a></code> | Convert an object, potentially containing tokens, to a YAML string. |
 
 ---
 
-##### `toString` <a name="toString" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.toString"></a>
+##### `toString` <a name="toString" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.toString"></a>
 
 ```typescript
 public toString(): string
@@ -254,7 +255,7 @@ public toString(): string
 
 Returns a string representation of this construct.
 
-##### `with` <a name="with" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.with"></a>
+##### `with` <a name="with" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.with"></a>
 
 ```typescript
 public with(mixins: ...IMixin[]): IConstruct
@@ -267,7 +268,7 @@ start of the call, so constructs added by a mixin will not be visited.
 Use multiple `with()` calls if subsequent mixins should apply to added
 constructs.
 
-###### `mixins`<sup>Required</sup> <a name="mixins" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.with.parameter.mixins"></a>
+###### `mixins`<sup>Required</sup> <a name="mixins" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.with.parameter.mixins"></a>
 
 - *Type:* ...constructs.IMixin[]
 
@@ -275,7 +276,7 @@ The mixins to apply.
 
 ---
 
-##### `addDependency` <a name="addDependency" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.addDependency"></a>
+##### `addDependency` <a name="addDependency" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.addDependency"></a>
 
 ```typescript
 public addDependency(target: Stack, reason?: string): void
@@ -286,19 +287,19 @@ Add a dependency between this stack and another stack.
 This can be used to define dependencies between any two stacks within an
 app, and also supports nested stacks.
 
-###### `target`<sup>Required</sup> <a name="target" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.addDependency.parameter.target"></a>
+###### `target`<sup>Required</sup> <a name="target" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.addDependency.parameter.target"></a>
 
 - *Type:* aws-cdk-lib.Stack
 
 ---
 
-###### `reason`<sup>Optional</sup> <a name="reason" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.addDependency.parameter.reason"></a>
+###### `reason`<sup>Optional</sup> <a name="reason" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.addDependency.parameter.reason"></a>
 
 - *Type:* string
 
 ---
 
-##### `addMetadata` <a name="addMetadata" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.addMetadata"></a>
+##### `addMetadata` <a name="addMetadata" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.addMetadata"></a>
 
 ```typescript
 public addMetadata(key: string, value: any): void
@@ -310,19 +311,19 @@ These get translated to the Metadata section of the generated template.
 
 > [https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/metadata-section-structure.html](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/metadata-section-structure.html)
 
-###### `key`<sup>Required</sup> <a name="key" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.addMetadata.parameter.key"></a>
+###### `key`<sup>Required</sup> <a name="key" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.addMetadata.parameter.key"></a>
 
 - *Type:* string
 
 ---
 
-###### `value`<sup>Required</sup> <a name="value" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.addMetadata.parameter.value"></a>
+###### `value`<sup>Required</sup> <a name="value" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.addMetadata.parameter.value"></a>
 
 - *Type:* any
 
 ---
 
-##### `addStackTag` <a name="addStackTag" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.addStackTag"></a>
+##### `addStackTag` <a name="addStackTag" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.addStackTag"></a>
 
 ```typescript
 public addStackTag(tagName: string, tagValue: string): void
@@ -332,19 +333,19 @@ Configure a stack tag.
 
 At deploy time, CloudFormation will automatically apply all stack tags to all resources in the stack.
 
-###### `tagName`<sup>Required</sup> <a name="tagName" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.addStackTag.parameter.tagName"></a>
+###### `tagName`<sup>Required</sup> <a name="tagName" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.addStackTag.parameter.tagName"></a>
 
 - *Type:* string
 
 ---
 
-###### `tagValue`<sup>Required</sup> <a name="tagValue" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.addStackTag.parameter.tagValue"></a>
+###### `tagValue`<sup>Required</sup> <a name="tagValue" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.addStackTag.parameter.tagValue"></a>
 
 - *Type:* string
 
 ---
 
-##### `addTransform` <a name="addTransform" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.addTransform"></a>
+##### `addTransform` <a name="addTransform" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.addTransform"></a>
 
 ```typescript
 public addTransform(transform: string): void
@@ -365,7 +366,7 @@ stack.addTransform('AWS::Serverless-2016-10-31')
 ```
 
 
-###### `transform`<sup>Required</sup> <a name="transform" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.addTransform.parameter.transform"></a>
+###### `transform`<sup>Required</sup> <a name="transform" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.addTransform.parameter.transform"></a>
 
 - *Type:* string
 
@@ -373,7 +374,7 @@ The transform to add.
 
 ---
 
-##### `exportStringListValue` <a name="exportStringListValue" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.exportStringListValue"></a>
+##### `exportStringListValue` <a name="exportStringListValue" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.exportStringListValue"></a>
 
 ```typescript
 public exportStringListValue(exportedValue: any, options?: ExportValueOptions): string[]
@@ -399,19 +400,19 @@ the resource and the manual export.
 
 See `exportValue` for an example of this process.
 
-###### `exportedValue`<sup>Required</sup> <a name="exportedValue" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.exportStringListValue.parameter.exportedValue"></a>
+###### `exportedValue`<sup>Required</sup> <a name="exportedValue" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.exportStringListValue.parameter.exportedValue"></a>
 
 - *Type:* any
 
 ---
 
-###### `options`<sup>Optional</sup> <a name="options" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.exportStringListValue.parameter.options"></a>
+###### `options`<sup>Optional</sup> <a name="options" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.exportStringListValue.parameter.options"></a>
 
 - *Type:* aws-cdk-lib.ExportValueOptions
 
 ---
 
-##### `exportValue` <a name="exportValue" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.exportValue"></a>
+##### `exportValue` <a name="exportValue" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.exportValue"></a>
 
 ```typescript
 public exportValue(exportedValue: any, options?: ExportValueOptions): string
@@ -460,19 +461,19 @@ Instead, the process takes two deployments:
 - Don't forget to remove the `exportValue()` call as well.
 - Deploy again (this time only the `producerStack` will be changed -- the bucket will be deleted).
 
-###### `exportedValue`<sup>Required</sup> <a name="exportedValue" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.exportValue.parameter.exportedValue"></a>
+###### `exportedValue`<sup>Required</sup> <a name="exportedValue" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.exportValue.parameter.exportedValue"></a>
 
 - *Type:* any
 
 ---
 
-###### `options`<sup>Optional</sup> <a name="options" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.exportValue.parameter.options"></a>
+###### `options`<sup>Optional</sup> <a name="options" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.exportValue.parameter.options"></a>
 
 - *Type:* aws-cdk-lib.ExportValueOptions
 
 ---
 
-##### `formatArn` <a name="formatArn" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.formatArn"></a>
+##### `formatArn` <a name="formatArn" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.formatArn"></a>
 
 ```typescript
 public formatArn(components: ArnComponents): string
@@ -494,13 +495,13 @@ The required ARN pieces that are omitted will be taken from the stack that
 the 'scope' is attached to. If all ARN pieces are supplied, the supplied scope
 can be 'undefined'.
 
-###### `components`<sup>Required</sup> <a name="components" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.formatArn.parameter.components"></a>
+###### `components`<sup>Required</sup> <a name="components" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.formatArn.parameter.components"></a>
 
 - *Type:* aws-cdk-lib.ArnComponents
 
 ---
 
-##### `getLogicalId` <a name="getLogicalId" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.getLogicalId"></a>
+##### `getLogicalId` <a name="getLogicalId" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.getLogicalId"></a>
 
 ```typescript
 public getLogicalId(element: CfnElement): string
@@ -516,7 +517,7 @@ This method uses the protected method `allocateLogicalId` to render the
 logical ID for an element. To modify the naming scheme, extend the `Stack`
 class and override this method.
 
-###### `element`<sup>Required</sup> <a name="element" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.getLogicalId.parameter.element"></a>
+###### `element`<sup>Required</sup> <a name="element" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.getLogicalId.parameter.element"></a>
 
 - *Type:* aws-cdk-lib.CfnElement
 
@@ -524,7 +525,7 @@ The CloudFormation element for which a logical identity is needed.
 
 ---
 
-##### `regionalFact` <a name="regionalFact" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.regionalFact"></a>
+##### `regionalFact` <a name="regionalFact" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.regionalFact"></a>
 
 ```typescript
 public regionalFact(factName: string, defaultValue?: string): string
@@ -548,19 +549,19 @@ not have to worry about regional facts.
 If `defaultValue` is not given, it is an error if the fact is unknown for
 the given region.
 
-###### `factName`<sup>Required</sup> <a name="factName" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.regionalFact.parameter.factName"></a>
+###### `factName`<sup>Required</sup> <a name="factName" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.regionalFact.parameter.factName"></a>
 
 - *Type:* string
 
 ---
 
-###### `defaultValue`<sup>Optional</sup> <a name="defaultValue" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.regionalFact.parameter.defaultValue"></a>
+###### `defaultValue`<sup>Optional</sup> <a name="defaultValue" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.regionalFact.parameter.defaultValue"></a>
 
 - *Type:* string
 
 ---
 
-##### `removeStackTag` <a name="removeStackTag" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.removeStackTag"></a>
+##### `removeStackTag` <a name="removeStackTag" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.removeStackTag"></a>
 
 ```typescript
 public removeStackTag(tagName: string): void
@@ -570,13 +571,13 @@ Remove a stack tag.
 
 At deploy time, CloudFormation will automatically apply all stack tags to all resources in the stack.
 
-###### `tagName`<sup>Required</sup> <a name="tagName" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.removeStackTag.parameter.tagName"></a>
+###### `tagName`<sup>Required</sup> <a name="tagName" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.removeStackTag.parameter.tagName"></a>
 
 - *Type:* string
 
 ---
 
-##### `renameLogicalId` <a name="renameLogicalId" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.renameLogicalId"></a>
+##### `renameLogicalId` <a name="renameLogicalId" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.renameLogicalId"></a>
 
 ```typescript
 public renameLogicalId(oldId: string, newId: string): void
@@ -587,19 +588,19 @@ Rename a generated logical identities.
 To modify the naming scheme strategy, extend the `Stack` class and
 override the `allocateLogicalId` method.
 
-###### `oldId`<sup>Required</sup> <a name="oldId" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.renameLogicalId.parameter.oldId"></a>
+###### `oldId`<sup>Required</sup> <a name="oldId" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.renameLogicalId.parameter.oldId"></a>
 
 - *Type:* string
 
 ---
 
-###### `newId`<sup>Required</sup> <a name="newId" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.renameLogicalId.parameter.newId"></a>
+###### `newId`<sup>Required</sup> <a name="newId" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.renameLogicalId.parameter.newId"></a>
 
 - *Type:* string
 
 ---
 
-##### `reportMissingContextKey` <a name="reportMissingContextKey" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.reportMissingContextKey"></a>
+##### `reportMissingContextKey` <a name="reportMissingContextKey" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.reportMissingContextKey"></a>
 
 ```typescript
 public reportMissingContextKey(report: MissingContext): void
@@ -610,7 +611,7 @@ Indicate that a context key was expected.
 Contains instructions which will be emitted into the cloud assembly on how
 the key should be supplied.
 
-###### `report`<sup>Required</sup> <a name="report" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.reportMissingContextKey.parameter.report"></a>
+###### `report`<sup>Required</sup> <a name="report" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.reportMissingContextKey.parameter.report"></a>
 
 - *Type:* aws-cdk-lib.cloud_assembly_schema.MissingContext
 
@@ -618,7 +619,7 @@ The set of parameters needed to obtain the context.
 
 ---
 
-##### `resolve` <a name="resolve" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.resolve"></a>
+##### `resolve` <a name="resolve" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.resolve"></a>
 
 ```typescript
 public resolve(obj: any): any
@@ -626,13 +627,13 @@ public resolve(obj: any): any
 
 Resolve a tokenized value in the context of the current stack.
 
-###### `obj`<sup>Required</sup> <a name="obj" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.resolve.parameter.obj"></a>
+###### `obj`<sup>Required</sup> <a name="obj" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.resolve.parameter.obj"></a>
 
 - *Type:* any
 
 ---
 
-##### `splitArn` <a name="splitArn" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.splitArn"></a>
+##### `splitArn` <a name="splitArn" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.splitArn"></a>
 
 ```typescript
 public splitArn(arn: string, arnFormat: ArnFormat): ArnComponents
@@ -645,7 +646,7 @@ and a Token representing a dynamic CloudFormation expression
 (in which case the returned components will also be dynamic CloudFormation expressions,
 encoded as Tokens).
 
-###### `arn`<sup>Required</sup> <a name="arn" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.splitArn.parameter.arn"></a>
+###### `arn`<sup>Required</sup> <a name="arn" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.splitArn.parameter.arn"></a>
 
 - *Type:* string
 
@@ -653,7 +654,7 @@ the ARN to split into its components.
 
 ---
 
-###### `arnFormat`<sup>Required</sup> <a name="arnFormat" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.splitArn.parameter.arnFormat"></a>
+###### `arnFormat`<sup>Required</sup> <a name="arnFormat" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.splitArn.parameter.arnFormat"></a>
 
 - *Type:* aws-cdk-lib.ArnFormat
 
@@ -661,7 +662,7 @@ the expected format of 'arn' - depends on what format the service 'arn' represen
 
 ---
 
-##### `toJsonString` <a name="toJsonString" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.toJsonString"></a>
+##### `toJsonString` <a name="toJsonString" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.toJsonString"></a>
 
 ```typescript
 public toJsonString(obj: any, space?: number): string
@@ -669,19 +670,19 @@ public toJsonString(obj: any, space?: number): string
 
 Convert an object, potentially containing tokens, to a JSON string.
 
-###### `obj`<sup>Required</sup> <a name="obj" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.toJsonString.parameter.obj"></a>
+###### `obj`<sup>Required</sup> <a name="obj" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.toJsonString.parameter.obj"></a>
 
 - *Type:* any
 
 ---
 
-###### `space`<sup>Optional</sup> <a name="space" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.toJsonString.parameter.space"></a>
+###### `space`<sup>Optional</sup> <a name="space" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.toJsonString.parameter.space"></a>
 
 - *Type:* number
 
 ---
 
-##### `toYamlString` <a name="toYamlString" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.toYamlString"></a>
+##### `toYamlString` <a name="toYamlString" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.toYamlString"></a>
 
 ```typescript
 public toYamlString(obj: any): string
@@ -689,7 +690,7 @@ public toYamlString(obj: any): string
 
 Convert an object, potentially containing tokens, to a YAML string.
 
-###### `obj`<sup>Required</sup> <a name="obj" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.toYamlString.parameter.obj"></a>
+###### `obj`<sup>Required</sup> <a name="obj" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.toYamlString.parameter.obj"></a>
 
 - *Type:* any
 
@@ -699,18 +700,18 @@ Convert an object, potentially containing tokens, to a YAML string.
 
 | **Name** | **Description** |
 | --- | --- |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.isConstruct">isConstruct</a></code> | Checks if `x` is a construct. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.isStack">isStack</a></code> | Return whether the given object is a Stack. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.of">of</a></code> | Looks up the first stack scope in which `construct` is defined. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.isConstruct">isConstruct</a></code> | Checks if `x` is a construct. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.isStack">isStack</a></code> | Return whether the given object is a Stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.of">of</a></code> | Looks up the first stack scope in which `construct` is defined. |
 
 ---
 
-##### `isConstruct` <a name="isConstruct" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.isConstruct"></a>
+##### `isConstruct` <a name="isConstruct" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.isConstruct"></a>
 
 ```typescript
-import { CloudformationStackDriftDetectorStack } from 'cloudformation-stack-drift-detector'
+import { CloudFormationStackDriftDetectorStack } from 'cloudformation-stack-drift-detector'
 
-CloudformationStackDriftDetectorStack.isConstruct(x: any)
+CloudFormationStackDriftDetectorStack.isConstruct(x: any)
 ```
 
 Checks if `x` is a construct.
@@ -729,7 +730,7 @@ library can be accidentally installed, and `instanceof` will behave
 unpredictably. It is safest to avoid using `instanceof`, and using
 this type-testing method instead.
 
-###### `x`<sup>Required</sup> <a name="x" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.isConstruct.parameter.x"></a>
+###### `x`<sup>Required</sup> <a name="x" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.isConstruct.parameter.x"></a>
 
 - *Type:* any
 
@@ -737,37 +738,37 @@ Any object.
 
 ---
 
-##### `isStack` <a name="isStack" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.isStack"></a>
+##### `isStack` <a name="isStack" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.isStack"></a>
 
 ```typescript
-import { CloudformationStackDriftDetectorStack } from 'cloudformation-stack-drift-detector'
+import { CloudFormationStackDriftDetectorStack } from 'cloudformation-stack-drift-detector'
 
-CloudformationStackDriftDetectorStack.isStack(x: any)
+CloudFormationStackDriftDetectorStack.isStack(x: any)
 ```
 
 Return whether the given object is a Stack.
 
 We do attribute detection since we can't reliably use 'instanceof'.
 
-###### `x`<sup>Required</sup> <a name="x" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.isStack.parameter.x"></a>
+###### `x`<sup>Required</sup> <a name="x" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.isStack.parameter.x"></a>
 
 - *Type:* any
 
 ---
 
-##### `of` <a name="of" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.of"></a>
+##### `of` <a name="of" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.of"></a>
 
 ```typescript
-import { CloudformationStackDriftDetectorStack } from 'cloudformation-stack-drift-detector'
+import { CloudFormationStackDriftDetectorStack } from 'cloudformation-stack-drift-detector'
 
-CloudformationStackDriftDetectorStack.of(construct: IConstruct)
+CloudFormationStackDriftDetectorStack.of(construct: IConstruct)
 ```
 
 Looks up the first stack scope in which `construct` is defined.
 
 Fails if there is no stack up the tree.
 
-###### `construct`<sup>Required</sup> <a name="construct" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.of.parameter.construct"></a>
+###### `construct`<sup>Required</sup> <a name="construct" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.of.parameter.construct"></a>
 
 - *Type:* constructs.IConstruct
 
@@ -779,31 +780,31 @@ The construct to start the search from.
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.account">account</a></code> | <code>string</code> | The AWS account into which this stack will be deployed. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.artifactId">artifactId</a></code> | <code>string</code> | The ID of the cloud assembly artifact for this stack. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.availabilityZones">availabilityZones</a></code> | <code>string[]</code> | Returns the list of AZs that are available in the AWS environment (account/region) associated with this stack. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.bundlingRequired">bundlingRequired</a></code> | <code>boolean</code> | Indicates whether the stack requires bundling or not. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.dependencies">dependencies</a></code> | <code>aws-cdk-lib.Stack[]</code> | Return the stacks this stack depends on. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.environment">environment</a></code> | <code>string</code> | The environment coordinates in which this stack is deployed. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.nested">nested</a></code> | <code>boolean</code> | Indicates if this is a nested stack, in which case `parentStack` will include a reference to it's parent. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.notificationArns">notificationArns</a></code> | <code>string[]</code> | Returns the list of notification Amazon Resource Names (ARNs) for the current stack. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.partition">partition</a></code> | <code>string</code> | The partition in which this stack is defined. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.region">region</a></code> | <code>string</code> | The AWS region into which this stack will be deployed (e.g. `us-west-2`). |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.stackId">stackId</a></code> | <code>string</code> | The ID of the stack. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.stackName">stackName</a></code> | <code>string</code> | The concrete CloudFormation physical stack name. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.synthesizer">synthesizer</a></code> | <code>aws-cdk-lib.IStackSynthesizer</code> | Synthesis method for this stack. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.tags">tags</a></code> | <code>aws-cdk-lib.TagManager</code> | Tags to be applied to the stack. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.templateFile">templateFile</a></code> | <code>string</code> | The name of the CloudFormation template file emitted to the output directory during synthesis. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.templateOptions">templateOptions</a></code> | <code>aws-cdk-lib.ITemplateOptions</code> | Options for CloudFormation template (like version, transform, description). |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.urlSuffix">urlSuffix</a></code> | <code>string</code> | The Amazon domain suffix for the region in which this stack is defined. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.nestedStackParent">nestedStackParent</a></code> | <code>aws-cdk-lib.Stack</code> | If this is a nested stack, returns it's parent stack. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.nestedStackResource">nestedStackResource</a></code> | <code>aws-cdk-lib.CfnResource</code> | If this is a nested stack, this represents its `AWS::CloudFormation::Stack` resource. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.terminationProtection">terminationProtection</a></code> | <code>boolean</code> | Whether termination protection is enabled for this stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.account">account</a></code> | <code>string</code> | The AWS account into which this stack will be deployed. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.artifactId">artifactId</a></code> | <code>string</code> | The ID of the cloud assembly artifact for this stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.availabilityZones">availabilityZones</a></code> | <code>string[]</code> | Returns the list of AZs that are available in the AWS environment (account/region) associated with this stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.bundlingRequired">bundlingRequired</a></code> | <code>boolean</code> | Indicates whether the stack requires bundling or not. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.dependencies">dependencies</a></code> | <code>aws-cdk-lib.Stack[]</code> | Return the stacks this stack depends on. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.environment">environment</a></code> | <code>string</code> | The environment coordinates in which this stack is deployed. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.nested">nested</a></code> | <code>boolean</code> | Indicates if this is a nested stack, in which case `parentStack` will include a reference to it's parent. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.notificationArns">notificationArns</a></code> | <code>string[]</code> | Returns the list of notification Amazon Resource Names (ARNs) for the current stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.partition">partition</a></code> | <code>string</code> | The partition in which this stack is defined. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.region">region</a></code> | <code>string</code> | The AWS region into which this stack will be deployed (e.g. `us-west-2`). |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.stackId">stackId</a></code> | <code>string</code> | The ID of the stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.stackName">stackName</a></code> | <code>string</code> | The concrete CloudFormation physical stack name. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.synthesizer">synthesizer</a></code> | <code>aws-cdk-lib.IStackSynthesizer</code> | Synthesis method for this stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.tags">tags</a></code> | <code>aws-cdk-lib.TagManager</code> | Tags to be applied to the stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.templateFile">templateFile</a></code> | <code>string</code> | The name of the CloudFormation template file emitted to the output directory during synthesis. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.templateOptions">templateOptions</a></code> | <code>aws-cdk-lib.ITemplateOptions</code> | Options for CloudFormation template (like version, transform, description). |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.urlSuffix">urlSuffix</a></code> | <code>string</code> | The Amazon domain suffix for the region in which this stack is defined. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.nestedStackParent">nestedStackParent</a></code> | <code>aws-cdk-lib.Stack</code> | If this is a nested stack, returns it's parent stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.nestedStackResource">nestedStackResource</a></code> | <code>aws-cdk-lib.CfnResource</code> | If this is a nested stack, this represents its `AWS::CloudFormation::Stack` resource. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.terminationProtection">terminationProtection</a></code> | <code>boolean</code> | Whether termination protection is enabled for this stack. |
 
 ---
 
-##### `node`<sup>Required</sup> <a name="node" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.node"></a>
+##### `node`<sup>Required</sup> <a name="node" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.node"></a>
 
 ```typescript
 public readonly node: Node;
@@ -815,7 +816,7 @@ The tree node.
 
 ---
 
-##### `account`<sup>Required</sup> <a name="account" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.account"></a>
+##### `account`<sup>Required</sup> <a name="account" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.account"></a>
 
 ```typescript
 public readonly account: string;
@@ -844,7 +845,7 @@ implement some other account-agnostic behavior.
 
 ---
 
-##### `artifactId`<sup>Required</sup> <a name="artifactId" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.artifactId"></a>
+##### `artifactId`<sup>Required</sup> <a name="artifactId" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.artifactId"></a>
 
 ```typescript
 public readonly artifactId: string;
@@ -856,7 +857,7 @@ The ID of the cloud assembly artifact for this stack.
 
 ---
 
-##### `availabilityZones`<sup>Required</sup> <a name="availabilityZones" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.availabilityZones"></a>
+##### `availabilityZones`<sup>Required</sup> <a name="availabilityZones" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.availabilityZones"></a>
 
 ```typescript
 public readonly availabilityZones: string[];
@@ -879,7 +880,7 @@ To specify a different strategy for selecting availability zones override this m
 
 ---
 
-##### `bundlingRequired`<sup>Required</sup> <a name="bundlingRequired" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.bundlingRequired"></a>
+##### `bundlingRequired`<sup>Required</sup> <a name="bundlingRequired" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.bundlingRequired"></a>
 
 ```typescript
 public readonly bundlingRequired: boolean;
@@ -891,7 +892,7 @@ Indicates whether the stack requires bundling or not.
 
 ---
 
-##### `dependencies`<sup>Required</sup> <a name="dependencies" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.dependencies"></a>
+##### `dependencies`<sup>Required</sup> <a name="dependencies" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.dependencies"></a>
 
 ```typescript
 public readonly dependencies: Stack[];
@@ -903,7 +904,7 @@ Return the stacks this stack depends on.
 
 ---
 
-##### `environment`<sup>Required</sup> <a name="environment" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.environment"></a>
+##### `environment`<sup>Required</sup> <a name="environment" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.environment"></a>
 
 ```typescript
 public readonly environment: string;
@@ -927,7 +928,7 @@ region/account-agnostic.
 
 ---
 
-##### `nested`<sup>Required</sup> <a name="nested" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.nested"></a>
+##### `nested`<sup>Required</sup> <a name="nested" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.nested"></a>
 
 ```typescript
 public readonly nested: boolean;
@@ -939,7 +940,7 @@ Indicates if this is a nested stack, in which case `parentStack` will include a 
 
 ---
 
-##### `notificationArns`<sup>Required</sup> <a name="notificationArns" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.notificationArns"></a>
+##### `notificationArns`<sup>Required</sup> <a name="notificationArns" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.notificationArns"></a>
 
 ```typescript
 public readonly notificationArns: string[];
@@ -951,7 +952,7 @@ Returns the list of notification Amazon Resource Names (ARNs) for the current st
 
 ---
 
-##### `partition`<sup>Required</sup> <a name="partition" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.partition"></a>
+##### `partition`<sup>Required</sup> <a name="partition" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.partition"></a>
 
 ```typescript
 public readonly partition: string;
@@ -963,7 +964,7 @@ The partition in which this stack is defined.
 
 ---
 
-##### `region`<sup>Required</sup> <a name="region" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.region"></a>
+##### `region`<sup>Required</sup> <a name="region" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.region"></a>
 
 ```typescript
 public readonly region: string;
@@ -992,7 +993,7 @@ implement some other region-agnostic behavior.
 
 ---
 
-##### `stackId`<sup>Required</sup> <a name="stackId" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.stackId"></a>
+##### `stackId`<sup>Required</sup> <a name="stackId" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.stackId"></a>
 
 ```typescript
 public readonly stackId: string;
@@ -1012,7 +1013,7 @@ The ID of the stack.
 ```
 
 
-##### `stackName`<sup>Required</sup> <a name="stackName" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.stackName"></a>
+##### `stackName`<sup>Required</sup> <a name="stackName" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.stackName"></a>
 
 ```typescript
 public readonly stackName: string;
@@ -1033,7 +1034,7 @@ you can use `Aws.STACK_NAME` directly.
 
 ---
 
-##### `synthesizer`<sup>Required</sup> <a name="synthesizer" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.synthesizer"></a>
+##### `synthesizer`<sup>Required</sup> <a name="synthesizer" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.synthesizer"></a>
 
 ```typescript
 public readonly synthesizer: IStackSynthesizer;
@@ -1045,7 +1046,7 @@ Synthesis method for this stack.
 
 ---
 
-##### `tags`<sup>Required</sup> <a name="tags" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.tags"></a>
+##### `tags`<sup>Required</sup> <a name="tags" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.tags"></a>
 
 ```typescript
 public readonly tags: TagManager;
@@ -1057,7 +1058,7 @@ Tags to be applied to the stack.
 
 ---
 
-##### `templateFile`<sup>Required</sup> <a name="templateFile" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.templateFile"></a>
+##### `templateFile`<sup>Required</sup> <a name="templateFile" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.templateFile"></a>
 
 ```typescript
 public readonly templateFile: string;
@@ -1071,7 +1072,7 @@ Example value: `MyStack.template.json`
 
 ---
 
-##### `templateOptions`<sup>Required</sup> <a name="templateOptions" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.templateOptions"></a>
+##### `templateOptions`<sup>Required</sup> <a name="templateOptions" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.templateOptions"></a>
 
 ```typescript
 public readonly templateOptions: ITemplateOptions;
@@ -1083,7 +1084,7 @@ Options for CloudFormation template (like version, transform, description).
 
 ---
 
-##### `urlSuffix`<sup>Required</sup> <a name="urlSuffix" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.urlSuffix"></a>
+##### `urlSuffix`<sup>Required</sup> <a name="urlSuffix" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.urlSuffix"></a>
 
 ```typescript
 public readonly urlSuffix: string;
@@ -1095,7 +1096,7 @@ The Amazon domain suffix for the region in which this stack is defined.
 
 ---
 
-##### `nestedStackParent`<sup>Optional</sup> <a name="nestedStackParent" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.nestedStackParent"></a>
+##### `nestedStackParent`<sup>Optional</sup> <a name="nestedStackParent" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.nestedStackParent"></a>
 
 ```typescript
 public readonly nestedStackParent: Stack;
@@ -1107,7 +1108,7 @@ If this is a nested stack, returns it's parent stack.
 
 ---
 
-##### `nestedStackResource`<sup>Optional</sup> <a name="nestedStackResource" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.nestedStackResource"></a>
+##### `nestedStackResource`<sup>Optional</sup> <a name="nestedStackResource" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.nestedStackResource"></a>
 
 ```typescript
 public readonly nestedStackResource: CfnResource;
@@ -1121,7 +1122,7 @@ If this is a nested stack, this represents its `AWS::CloudFormation::Stack` reso
 
 ---
 
-##### `terminationProtection`<sup>Required</sup> <a name="terminationProtection" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStack.property.terminationProtection"></a>
+##### `terminationProtection`<sup>Required</sup> <a name="terminationProtection" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack.property.terminationProtection"></a>
 
 ```typescript
 public readonly terminationProtection: boolean;
@@ -1136,33 +1137,33 @@ Whether termination protection is enabled for this stack.
 
 ## Structs <a name="Structs" id="Structs"></a>
 
-### CloudformationStackDriftDetectorProps <a name="CloudformationStackDriftDetectorProps" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps"></a>
+### CloudFormationStackDriftDetectorProps <a name="CloudFormationStackDriftDetectorProps" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps"></a>
 
-Properties for {@link CloudformationStackDriftDetector}.
+Properties for {@link CloudFormationStackDriftDetector}.
 
-#### Initializer <a name="Initializer" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.Initializer"></a>
+#### Initializer <a name="Initializer" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.Initializer"></a>
 
 ```typescript
-import { CloudformationStackDriftDetectorProps } from 'cloudformation-stack-drift-detector'
+import { CloudFormationStackDriftDetectorProps } from 'cloudformation-stack-drift-detector'
 
-const cloudformationStackDriftDetectorProps: CloudformationStackDriftDetectorProps = { ... }
+const cloudFormationStackDriftDetectorProps: CloudFormationStackDriftDetectorProps = { ... }
 ```
 
 #### Properties <a name="Properties" id="Properties"></a>
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic that receives drift and failure notifications. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.additionalPolicyStatements">additionalPolicyStatements</a></code> | <code>aws-cdk-lib.aws_iam.PolicyStatement[]</code> | Extra IAM statements attached to the detector Lambda role. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.executionTimeout">executionTimeout</a></code> | <code>aws-cdk-lib.Duration</code> | Maximum duration of a durable execution. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.grantReadOnlyAccess">grantReadOnlyAccess</a></code> | <code><a href="#cloudformation-stack-drift-detector.ReadOnlyAccessGrant">ReadOnlyAccessGrant</a></code> | Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.notificationTopicKey">notificationTopicKey</a></code> | <code>aws-cdk-lib.aws_kms.IKey</code> | Customer-managed KMS key that encrypts {@link CloudformationStackDriftDetectorProps.notificationTopic}. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.retentionPeriod">retentionPeriod</a></code> | <code>aws-cdk-lib.Duration</code> | How long durable execution history is retained after completion. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.targetResource">targetResource</a></code> | <code><a href="#cloudformation-stack-drift-detector.TargetResource">TargetResource</a></code> | Tag filter used to select target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic that receives drift and failure notifications. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.additionalPolicyStatements">additionalPolicyStatements</a></code> | <code>aws-cdk-lib.aws_iam.PolicyStatement[]</code> | Extra IAM statements attached to the detector Lambda role. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.executionTimeout">executionTimeout</a></code> | <code>aws-cdk-lib.Duration</code> | Maximum duration of a durable execution. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.grantReadOnlyAccess">grantReadOnlyAccess</a></code> | <code><a href="#cloudformation-stack-drift-detector.ReadOnlyAccessGrant">ReadOnlyAccessGrant</a></code> | Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.notificationTopicKey">notificationTopicKey</a></code> | <code>aws-cdk-lib.aws_kms.IKey</code> | Customer-managed KMS key that encrypts {@link CloudFormationStackDriftDetectorProps.notificationTopic}. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.retentionPeriod">retentionPeriod</a></code> | <code>aws-cdk-lib.Duration</code> | How long durable execution history is retained after completion. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.targetResource">targetResource</a></code> | <code>construct-resource-criteria.ConstructResourceTagCriteria</code> | Tag criteria used to select target stacks. |
 
 ---
 
-##### `notificationTopic`<sup>Required</sup> <a name="notificationTopic" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.notificationTopic"></a>
+##### `notificationTopic`<sup>Required</sup> <a name="notificationTopic" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.notificationTopic"></a>
 
 ```typescript
 public readonly notificationTopic: ITopic;
@@ -1174,7 +1175,7 @@ SNS topic that receives drift and failure notifications.
 
 ---
 
-##### `additionalPolicyStatements`<sup>Optional</sup> <a name="additionalPolicyStatements" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.additionalPolicyStatements"></a>
+##### `additionalPolicyStatements`<sup>Optional</sup> <a name="additionalPolicyStatements" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.additionalPolicyStatements"></a>
 
 ```typescript
 public readonly additionalPolicyStatements: PolicyStatement[];
@@ -1190,7 +1191,7 @@ Use this to grant Describe/Get permissions for resources in target stacks
 
 ---
 
-##### `executionTimeout`<sup>Optional</sup> <a name="executionTimeout" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.executionTimeout"></a>
+##### `executionTimeout`<sup>Optional</sup> <a name="executionTimeout" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.executionTimeout"></a>
 
 ```typescript
 public readonly executionTimeout: Duration;
@@ -1203,7 +1204,7 @@ Maximum duration of a durable execution.
 
 ---
 
-##### `grantReadOnlyAccess`<sup>Optional</sup> <a name="grantReadOnlyAccess" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.grantReadOnlyAccess"></a>
+##### `grantReadOnlyAccess`<sup>Optional</sup> <a name="grantReadOnlyAccess" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.grantReadOnlyAccess"></a>
 
 ```typescript
 public readonly grantReadOnlyAccess: ReadOnlyAccessGrant;
@@ -1216,7 +1217,7 @@ Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift ca
 
 ---
 
-##### `notificationTopicKey`<sup>Optional</sup> <a name="notificationTopicKey" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.notificationTopicKey"></a>
+##### `notificationTopicKey`<sup>Optional</sup> <a name="notificationTopicKey" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.notificationTopicKey"></a>
 
 ```typescript
 public readonly notificationTopicKey: IKey;
@@ -1225,14 +1226,14 @@ public readonly notificationTopicKey: IKey;
 - *Type:* aws-cdk-lib.aws_kms.IKey
 - *Default:* no extra KMS grant; relies on `grantPublish` when the topic exposes a key
 
-Customer-managed KMS key that encrypts {@link CloudformationStackDriftDetectorProps.notificationTopic}.
+Customer-managed KMS key that encrypts {@link CloudFormationStackDriftDetectorProps.notificationTopic}.
 
 `grantPublish` already grants KMS when the topic is a `sns.Topic` with `masterKey`.
 Pass this for imported topics (`fromTopicArn`), where the encryption key is otherwise unknown.
 
 ---
 
-##### `retentionPeriod`<sup>Optional</sup> <a name="retentionPeriod" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.retentionPeriod"></a>
+##### `retentionPeriod`<sup>Optional</sup> <a name="retentionPeriod" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.retentionPeriod"></a>
 
 ```typescript
 public readonly retentionPeriod: Duration;
@@ -1245,59 +1246,64 @@ How long durable execution history is retained after completion.
 
 ---
 
-##### `targetResource`<sup>Optional</sup> <a name="targetResource" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorProps.property.targetResource"></a>
+##### `targetResource`<sup>Optional</sup> <a name="targetResource" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.targetResource"></a>
 
 ```typescript
-public readonly targetResource: TargetResource;
+public readonly targetResource: ConstructResourceTagCriteria;
 ```
 
-- *Type:* <a href="#cloudformation-stack-drift-detector.TargetResource">TargetResource</a>
+- *Type:* construct-resource-criteria.ConstructResourceTagCriteria
 
-Tag filter used to select target stacks.
+Tag criteria used to select target stacks.
 
+When set, {@link TargetResource.tagKey} must be non-blank and
+{@link TargetResource.tagValues} must contain at least one non-blank value.
+Tagged stacks are limited to stable statuses: `CREATE_COMPLETE`,
+`UPDATE_COMPLETE`, `UPDATE_ROLLBACK_COMPLETE`, `IMPORT_COMPLETE`, and
+`IMPORT_ROLLBACK_COMPLETE`.
 If omitted, every stable stack in the account and region is inspected.
 
 ---
 
-### CloudformationStackDriftDetectorStackProps <a name="CloudformationStackDriftDetectorStackProps" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps"></a>
+### CloudFormationStackDriftDetectorStackProps <a name="CloudFormationStackDriftDetectorStackProps" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps"></a>
 
-Properties for {@link CloudformationStackDriftDetectorStack}.
+Properties for {@link CloudFormationStackDriftDetectorStack}.
 
-#### Initializer <a name="Initializer" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.Initializer"></a>
+#### Initializer <a name="Initializer" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.Initializer"></a>
 
 ```typescript
-import { CloudformationStackDriftDetectorStackProps } from 'cloudformation-stack-drift-detector'
+import { CloudFormationStackDriftDetectorStackProps } from 'cloudformation-stack-drift-detector'
 
-const cloudformationStackDriftDetectorStackProps: CloudformationStackDriftDetectorStackProps = { ... }
+const cloudFormationStackDriftDetectorStackProps: CloudFormationStackDriftDetectorStackProps = { ... }
 ```
 
 #### Properties <a name="Properties" id="Properties"></a>
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic that receives drift and failure notifications. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.additionalPolicyStatements">additionalPolicyStatements</a></code> | <code>aws-cdk-lib.aws_iam.PolicyStatement[]</code> | Extra IAM statements attached to the detector Lambda role. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.executionTimeout">executionTimeout</a></code> | <code>aws-cdk-lib.Duration</code> | Maximum duration of a durable execution. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.grantReadOnlyAccess">grantReadOnlyAccess</a></code> | <code><a href="#cloudformation-stack-drift-detector.ReadOnlyAccessGrant">ReadOnlyAccessGrant</a></code> | Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.notificationTopicKey">notificationTopicKey</a></code> | <code>aws-cdk-lib.aws_kms.IKey</code> | Customer-managed KMS key that encrypts {@link CloudformationStackDriftDetectorProps.notificationTopic}. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.retentionPeriod">retentionPeriod</a></code> | <code>aws-cdk-lib.Duration</code> | How long durable execution history is retained after completion. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.targetResource">targetResource</a></code> | <code><a href="#cloudformation-stack-drift-detector.TargetResource">TargetResource</a></code> | Tag filter used to select target stacks. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.analyticsReporting">analyticsReporting</a></code> | <code>boolean</code> | Include runtime versioning information in this Stack. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.crossRegionReferences">crossRegionReferences</a></code> | <code>boolean</code> | Enable this flag to allow native cross region stack references. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.description">description</a></code> | <code>string</code> | A description of the stack. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.env">env</a></code> | <code>aws-cdk-lib.Environment</code> | The AWS environment (account/region) where this stack will be deployed. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.notificationArns">notificationArns</a></code> | <code>string[]</code> | SNS Topic ARNs that will receive stack events. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.permissionsBoundary">permissionsBoundary</a></code> | <code>aws-cdk-lib.PermissionsBoundary</code> | Options for applying a permissions boundary to all IAM Roles and Users created within this Stage. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.propertyInjectors">propertyInjectors</a></code> | <code>aws-cdk-lib.IPropertyInjector[]</code> | A list of IPropertyInjector attached to this Stack. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.stackName">stackName</a></code> | <code>string</code> | Name to deploy the stack with. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.suppressTemplateIndentation">suppressTemplateIndentation</a></code> | <code>boolean</code> | Enable this flag to suppress indentation in generated CloudFormation templates. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.synthesizer">synthesizer</a></code> | <code>aws-cdk-lib.IStackSynthesizer</code> | Synthesis method to use while deploying this stack. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.tags">tags</a></code> | <code>{[ key: string ]: string}</code> | Tags that will be applied to the Stack. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.terminationProtection">terminationProtection</a></code> | <code>boolean</code> | Whether to enable termination protection for this stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic that receives drift and failure notifications. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.additionalPolicyStatements">additionalPolicyStatements</a></code> | <code>aws-cdk-lib.aws_iam.PolicyStatement[]</code> | Extra IAM statements attached to the detector Lambda role. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.executionTimeout">executionTimeout</a></code> | <code>aws-cdk-lib.Duration</code> | Maximum duration of a durable execution. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.grantReadOnlyAccess">grantReadOnlyAccess</a></code> | <code><a href="#cloudformation-stack-drift-detector.ReadOnlyAccessGrant">ReadOnlyAccessGrant</a></code> | Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.notificationTopicKey">notificationTopicKey</a></code> | <code>aws-cdk-lib.aws_kms.IKey</code> | Customer-managed KMS key that encrypts {@link CloudFormationStackDriftDetectorProps.notificationTopic}. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.retentionPeriod">retentionPeriod</a></code> | <code>aws-cdk-lib.Duration</code> | How long durable execution history is retained after completion. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.targetResource">targetResource</a></code> | <code>construct-resource-criteria.ConstructResourceTagCriteria</code> | Tag criteria used to select target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.analyticsReporting">analyticsReporting</a></code> | <code>boolean</code> | Include runtime versioning information in this Stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.crossRegionReferences">crossRegionReferences</a></code> | <code>boolean</code> | Enable this flag to allow native cross region stack references. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.description">description</a></code> | <code>string</code> | A description of the stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.env">env</a></code> | <code>aws-cdk-lib.Environment</code> | The AWS environment (account/region) where this stack will be deployed. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.notificationArns">notificationArns</a></code> | <code>string[]</code> | SNS Topic ARNs that will receive stack events. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.permissionsBoundary">permissionsBoundary</a></code> | <code>aws-cdk-lib.PermissionsBoundary</code> | Options for applying a permissions boundary to all IAM Roles and Users created within this Stage. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.propertyInjectors">propertyInjectors</a></code> | <code>aws-cdk-lib.IPropertyInjector[]</code> | A list of IPropertyInjector attached to this Stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.stackName">stackName</a></code> | <code>string</code> | Name to deploy the stack with. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.suppressTemplateIndentation">suppressTemplateIndentation</a></code> | <code>boolean</code> | Enable this flag to suppress indentation in generated CloudFormation templates. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.synthesizer">synthesizer</a></code> | <code>aws-cdk-lib.IStackSynthesizer</code> | Synthesis method to use while deploying this stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.tags">tags</a></code> | <code>{[ key: string ]: string}</code> | Tags that will be applied to the Stack. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.terminationProtection">terminationProtection</a></code> | <code>boolean</code> | Whether to enable termination protection for this stack. |
 
 ---
 
-##### `notificationTopic`<sup>Required</sup> <a name="notificationTopic" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.notificationTopic"></a>
+##### `notificationTopic`<sup>Required</sup> <a name="notificationTopic" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.notificationTopic"></a>
 
 ```typescript
 public readonly notificationTopic: ITopic;
@@ -1309,7 +1315,7 @@ SNS topic that receives drift and failure notifications.
 
 ---
 
-##### `additionalPolicyStatements`<sup>Optional</sup> <a name="additionalPolicyStatements" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.additionalPolicyStatements"></a>
+##### `additionalPolicyStatements`<sup>Optional</sup> <a name="additionalPolicyStatements" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.additionalPolicyStatements"></a>
 
 ```typescript
 public readonly additionalPolicyStatements: PolicyStatement[];
@@ -1325,7 +1331,7 @@ Use this to grant Describe/Get permissions for resources in target stacks
 
 ---
 
-##### `executionTimeout`<sup>Optional</sup> <a name="executionTimeout" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.executionTimeout"></a>
+##### `executionTimeout`<sup>Optional</sup> <a name="executionTimeout" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.executionTimeout"></a>
 
 ```typescript
 public readonly executionTimeout: Duration;
@@ -1338,7 +1344,7 @@ Maximum duration of a durable execution.
 
 ---
 
-##### `grantReadOnlyAccess`<sup>Optional</sup> <a name="grantReadOnlyAccess" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.grantReadOnlyAccess"></a>
+##### `grantReadOnlyAccess`<sup>Optional</sup> <a name="grantReadOnlyAccess" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.grantReadOnlyAccess"></a>
 
 ```typescript
 public readonly grantReadOnlyAccess: ReadOnlyAccessGrant;
@@ -1351,7 +1357,7 @@ Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift ca
 
 ---
 
-##### `notificationTopicKey`<sup>Optional</sup> <a name="notificationTopicKey" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.notificationTopicKey"></a>
+##### `notificationTopicKey`<sup>Optional</sup> <a name="notificationTopicKey" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.notificationTopicKey"></a>
 
 ```typescript
 public readonly notificationTopicKey: IKey;
@@ -1360,14 +1366,14 @@ public readonly notificationTopicKey: IKey;
 - *Type:* aws-cdk-lib.aws_kms.IKey
 - *Default:* no extra KMS grant; relies on `grantPublish` when the topic exposes a key
 
-Customer-managed KMS key that encrypts {@link CloudformationStackDriftDetectorProps.notificationTopic}.
+Customer-managed KMS key that encrypts {@link CloudFormationStackDriftDetectorProps.notificationTopic}.
 
 `grantPublish` already grants KMS when the topic is a `sns.Topic` with `masterKey`.
 Pass this for imported topics (`fromTopicArn`), where the encryption key is otherwise unknown.
 
 ---
 
-##### `retentionPeriod`<sup>Optional</sup> <a name="retentionPeriod" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.retentionPeriod"></a>
+##### `retentionPeriod`<sup>Optional</sup> <a name="retentionPeriod" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.retentionPeriod"></a>
 
 ```typescript
 public readonly retentionPeriod: Duration;
@@ -1380,21 +1386,26 @@ How long durable execution history is retained after completion.
 
 ---
 
-##### `targetResource`<sup>Optional</sup> <a name="targetResource" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.targetResource"></a>
+##### `targetResource`<sup>Optional</sup> <a name="targetResource" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.targetResource"></a>
 
 ```typescript
-public readonly targetResource: TargetResource;
+public readonly targetResource: ConstructResourceTagCriteria;
 ```
 
-- *Type:* <a href="#cloudformation-stack-drift-detector.TargetResource">TargetResource</a>
+- *Type:* construct-resource-criteria.ConstructResourceTagCriteria
 
-Tag filter used to select target stacks.
+Tag criteria used to select target stacks.
 
+When set, {@link TargetResource.tagKey} must be non-blank and
+{@link TargetResource.tagValues} must contain at least one non-blank value.
+Tagged stacks are limited to stable statuses: `CREATE_COMPLETE`,
+`UPDATE_COMPLETE`, `UPDATE_ROLLBACK_COMPLETE`, `IMPORT_COMPLETE`, and
+`IMPORT_ROLLBACK_COMPLETE`.
 If omitted, every stable stack in the account and region is inspected.
 
 ---
 
-##### `analyticsReporting`<sup>Optional</sup> <a name="analyticsReporting" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.analyticsReporting"></a>
+##### `analyticsReporting`<sup>Optional</sup> <a name="analyticsReporting" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.analyticsReporting"></a>
 
 ```typescript
 public readonly analyticsReporting: boolean;
@@ -1407,7 +1418,7 @@ Include runtime versioning information in this Stack.
 
 ---
 
-##### `crossRegionReferences`<sup>Optional</sup> <a name="crossRegionReferences" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.crossRegionReferences"></a>
+##### `crossRegionReferences`<sup>Optional</sup> <a name="crossRegionReferences" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.crossRegionReferences"></a>
 
 ```typescript
 public readonly crossRegionReferences: boolean;
@@ -1425,7 +1436,7 @@ This feature is currently experimental
 
 ---
 
-##### `description`<sup>Optional</sup> <a name="description" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.description"></a>
+##### `description`<sup>Optional</sup> <a name="description" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.description"></a>
 
 ```typescript
 public readonly description: string;
@@ -1438,7 +1449,7 @@ A description of the stack.
 
 ---
 
-##### `env`<sup>Optional</sup> <a name="env" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.env"></a>
+##### `env`<sup>Optional</sup> <a name="env" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.env"></a>
 
 ```typescript
 public readonly env: Environment;
@@ -1512,7 +1523,7 @@ new MyStack(app, 'Stack1');
 ```
 
 
-##### `notificationArns`<sup>Optional</sup> <a name="notificationArns" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.notificationArns"></a>
+##### `notificationArns`<sup>Optional</sup> <a name="notificationArns" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.notificationArns"></a>
 
 ```typescript
 public readonly notificationArns: string[];
@@ -1525,7 +1536,7 @@ SNS Topic ARNs that will receive stack events.
 
 ---
 
-##### `permissionsBoundary`<sup>Optional</sup> <a name="permissionsBoundary" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.permissionsBoundary"></a>
+##### `permissionsBoundary`<sup>Optional</sup> <a name="permissionsBoundary" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.permissionsBoundary"></a>
 
 ```typescript
 public readonly permissionsBoundary: PermissionsBoundary;
@@ -1538,7 +1549,7 @@ Options for applying a permissions boundary to all IAM Roles and Users created w
 
 ---
 
-##### `propertyInjectors`<sup>Optional</sup> <a name="propertyInjectors" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.propertyInjectors"></a>
+##### `propertyInjectors`<sup>Optional</sup> <a name="propertyInjectors" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.propertyInjectors"></a>
 
 ```typescript
 public readonly propertyInjectors: IPropertyInjector[];
@@ -1551,7 +1562,7 @@ A list of IPropertyInjector attached to this Stack.
 
 ---
 
-##### `stackName`<sup>Optional</sup> <a name="stackName" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.stackName"></a>
+##### `stackName`<sup>Optional</sup> <a name="stackName" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.stackName"></a>
 
 ```typescript
 public readonly stackName: string;
@@ -1564,7 +1575,7 @@ Name to deploy the stack with.
 
 ---
 
-##### `suppressTemplateIndentation`<sup>Optional</sup> <a name="suppressTemplateIndentation" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.suppressTemplateIndentation"></a>
+##### `suppressTemplateIndentation`<sup>Optional</sup> <a name="suppressTemplateIndentation" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.suppressTemplateIndentation"></a>
 
 ```typescript
 public readonly suppressTemplateIndentation: boolean;
@@ -1581,7 +1592,7 @@ default value `false` will be used.
 
 ---
 
-##### `synthesizer`<sup>Optional</sup> <a name="synthesizer" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.synthesizer"></a>
+##### `synthesizer`<sup>Optional</sup> <a name="synthesizer" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.synthesizer"></a>
 
 ```typescript
 public readonly synthesizer: IStackSynthesizer;
@@ -1604,7 +1615,7 @@ other synthesizer is specified.
 
 ---
 
-##### `tags`<sup>Optional</sup> <a name="tags" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.tags"></a>
+##### `tags`<sup>Optional</sup> <a name="tags" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.tags"></a>
 
 ```typescript
 public readonly tags: {[ key: string ]: string};
@@ -1625,7 +1636,7 @@ resources from tagging (using the `excludeResourceTypes` property of
 
 ---
 
-##### `terminationProtection`<sup>Optional</sup> <a name="terminationProtection" id="cloudformation-stack-drift-detector.CloudformationStackDriftDetectorStackProps.property.terminationProtection"></a>
+##### `terminationProtection`<sup>Optional</sup> <a name="terminationProtection" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.terminationProtection"></a>
 
 ```typescript
 public readonly terminationProtection: boolean;
@@ -1635,55 +1646,6 @@ public readonly terminationProtection: boolean;
 - *Default:* false
 
 Whether to enable termination protection for this stack.
-
----
-
-### TargetResource <a name="TargetResource" id="cloudformation-stack-drift-detector.TargetResource"></a>
-
-Tag filter used to select CloudFormation stacks for drift detection.
-
-When `tagValues` is omitted, all stacks that have `tagKey` are selected.
-
-#### Initializer <a name="Initializer" id="cloudformation-stack-drift-detector.TargetResource.Initializer"></a>
-
-```typescript
-import { TargetResource } from 'cloudformation-stack-drift-detector'
-
-const targetResource: TargetResource = { ... }
-```
-
-#### Properties <a name="Properties" id="Properties"></a>
-
-| **Name** | **Type** | **Description** |
-| --- | --- | --- |
-| <code><a href="#cloudformation-stack-drift-detector.TargetResource.property.tagKey">tagKey</a></code> | <code>string</code> | Tag key used for stack discovery. |
-| <code><a href="#cloudformation-stack-drift-detector.TargetResource.property.tagValues">tagValues</a></code> | <code>string[]</code> | Tag values to match. |
-
----
-
-##### `tagKey`<sup>Required</sup> <a name="tagKey" id="cloudformation-stack-drift-detector.TargetResource.property.tagKey"></a>
-
-```typescript
-public readonly tagKey: string;
-```
-
-- *Type:* string
-
-Tag key used for stack discovery.
-
----
-
-##### `tagValues`<sup>Optional</sup> <a name="tagValues" id="cloudformation-stack-drift-detector.TargetResource.property.tagValues"></a>
-
-```typescript
-public readonly tagValues: string[];
-```
-
-- *Type:* string[]
-
-Tag values to match.
-
-If omitted, any value for {@link TargetResource.tagKey} is accepted.
 
 ---
 

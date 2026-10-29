@@ -3,7 +3,7 @@ import { Match, Template } from 'aws-cdk-lib/assertions';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as kms from 'aws-cdk-lib/aws-kms';
 import * as sns from 'aws-cdk-lib/aws-sns';
-import { CloudformationStackDriftDetector, ReadOnlyAccessGrant } from '../src';
+import { CloudFormationStackDriftDetector, ReadOnlyAccessGrant } from '../src';
 
 const NOTIFICATION_TOPIC_ARN = 'arn:aws:sns:us-east-1:123456789012:existing-topic';
 
@@ -21,7 +21,7 @@ const createTestStack = (): Stack => {
   });
 };
 
-describe('CloudformationStackDriftDetector', () => {
+describe('CloudFormationStackDriftDetector', () => {
   describe('default', () => {
     const app = new App();
     const stack = new Stack(app, 'TestStack', {
@@ -30,7 +30,7 @@ describe('CloudformationStackDriftDetector', () => {
         region: 'us-east-1',
       },
     });
-    new CloudformationStackDriftDetector(stack, 'Detector', {
+    new CloudFormationStackDriftDetector(stack, 'Detector', {
       notificationTopic: getNotificationTopic(stack),
     });
     const template = Template.fromStack(stack);
@@ -136,7 +136,7 @@ describe('CloudformationStackDriftDetector', () => {
   describe('role', () => {
     it('should expose the detector Lambda role', () => {
       const stack = createTestStack();
-      const detector = new CloudformationStackDriftDetector(stack, 'Detector', {
+      const detector = new CloudFormationStackDriftDetector(stack, 'Detector', {
         notificationTopic: getNotificationTopic(stack),
       });
 
@@ -146,7 +146,7 @@ describe('CloudformationStackDriftDetector', () => {
 
   describe('with grantReadOnlyAccess', () => {
     const stack = createTestStack();
-    new CloudformationStackDriftDetector(stack, 'Detector', {
+    new CloudFormationStackDriftDetector(stack, 'Detector', {
       notificationTopic: getNotificationTopic(stack),
       grantReadOnlyAccess: ReadOnlyAccessGrant.ENABLED,
     });
@@ -172,7 +172,7 @@ describe('CloudformationStackDriftDetector', () => {
 
   describe('with additional policy statements', () => {
     const stack = createTestStack();
-    new CloudformationStackDriftDetector(stack, 'Detector', {
+    new CloudFormationStackDriftDetector(stack, 'Detector', {
       notificationTopic: getNotificationTopic(stack),
       additionalPolicyStatements: [
         new iam.PolicyStatement({
@@ -207,7 +207,7 @@ describe('CloudformationStackDriftDetector', () => {
   describe('with notification topic key', () => {
     const stack = createTestStack();
     const topicKey = new kms.Key(stack, 'TopicKey');
-    new CloudformationStackDriftDetector(stack, 'Detector', {
+    new CloudFormationStackDriftDetector(stack, 'Detector', {
       notificationTopic: getNotificationTopic(stack),
       notificationTopicKey: topicKey,
     });
@@ -245,7 +245,7 @@ describe('CloudformationStackDriftDetector', () => {
         region: 'us-east-1',
       },
     });
-    new CloudformationStackDriftDetector(stack, 'Detector', {
+    new CloudFormationStackDriftDetector(stack, 'Detector', {
       notificationTopic: getNotificationTopic(stack),
       targetResource: {
         tagKey: 'DriftDetection',
@@ -265,58 +265,39 @@ describe('CloudformationStackDriftDetector', () => {
     });
   });
 
-  describe('with tag key only', () => {
-    const app = new App();
-    const stack = new Stack(app, 'TestStack', {
-      env: {
-        account: '123456789012',
-        region: 'us-east-1',
-      },
-    });
-    new CloudformationStackDriftDetector(stack, 'Detector', {
-      notificationTopic: getNotificationTopic(stack),
-      targetResource: {
-        tagKey: 'DriftDetection',
-      },
-    });
-    const template = Template.fromStack(stack);
+  describe('with invalid tag criteria', () => {
+    it('rejects a blank tag key', () => {
+      const stack = createTestStack();
 
-    it('should pass only the tag key to the detector', () => {
-      template.hasResourceProperties('AWS::Events::Rule', Match.objectLike({
-        Targets: Match.arrayWith([
-          Match.objectLike({
-            Input: '{"tagKey":"DriftDetection"}',
-          }),
-        ]),
-      }));
+      expect(() => {
+        new CloudFormationStackDriftDetector(stack, 'Detector', {
+          notificationTopic: getNotificationTopic(stack),
+          targetResource: {
+            tagKey: ' ',
+            tagValues: ['enabled'],
+          },
+        });
+      }).toThrow('props.targetResource.tagKey must be a non-blank string.');
     });
-  });
 
-  describe('with empty tag values', () => {
-    const stack = createTestStack();
-    new CloudformationStackDriftDetector(stack, 'Detector', {
-      notificationTopic: getNotificationTopic(stack),
-      targetResource: {
-        tagKey: 'DriftDetection',
-        tagValues: [],
-      },
-    });
-    const template = Template.fromStack(stack);
+    it('rejects an empty tag value list', () => {
+      const stack = createTestStack();
 
-    it('should omit empty tag values from the detector input', () => {
-      template.hasResourceProperties('AWS::Events::Rule', Match.objectLike({
-        Targets: Match.arrayWith([
-          Match.objectLike({
-            Input: '{"tagKey":"DriftDetection"}',
-          }),
-        ]),
-      }));
+      expect(() => {
+        new CloudFormationStackDriftDetector(stack, 'Detector', {
+          notificationTopic: getNotificationTopic(stack),
+          targetResource: {
+            tagKey: 'DriftDetection',
+            tagValues: [],
+          },
+        });
+      }).toThrow('props.targetResource.tagValues must contain at least one value.');
     });
   });
 
   describe('with durable execution settings', () => {
     const stack = createTestStack();
-    new CloudformationStackDriftDetector(stack, 'Detector', {
+    new CloudFormationStackDriftDetector(stack, 'Detector', {
       notificationTopic: getNotificationTopic(stack),
       executionTimeout: Duration.hours(2),
       retentionPeriod: Duration.days(14),

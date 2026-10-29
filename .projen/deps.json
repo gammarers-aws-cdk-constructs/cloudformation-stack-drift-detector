@@ -22,7 +22,7 @@
     },
     {
       "name": "@gammarers/projen-projects",
-      "version": "^0.5.7",
+      "version": "^0.6.2",
       "type": "build"
     },
     {
@@ -133,6 +133,11 @@
     {
       "name": "aws-cdk-lib",
       "version": "^2.232.0",
+      "type": "peer"
+    },
+    {
+      "name": "construct-resource-criteria",
+      "version": "^0.1.5",
       "type": "peer"
     },
     {

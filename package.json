@@ -43,7 +43,7 @@
     "@aws-sdk/client-resource-groups-tagging-api": "^3.1116.0",
     "@aws-sdk/client-sns": "^3.1116.0",
     "@aws/durable-execution-sdk-js": "^2.3.0",
-    "@gammarers/projen-projects": "^0.5.7",
+    "@gammarers/projen-projects": "^0.6.2",
     "@stylistic/eslint-plugin": "^2",
     "@types/jest": "^30.0.0",
     "@types/node": "^20",
@@ -53,6 +53,7 @@
     "aws-sdk-client-mock": "^4.1.0",
     "aws-sdk-client-mock-jest": "^4.1.0",
     "commit-and-tag-version": "^13",
+    "construct-resource-criteria": "0.1.5",
     "constructs": "10.5.1",
     "esbuild": "^0.28.2",
     "eslint": "^9",
@@ -72,6 +73,7 @@
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.232.0",
+    "construct-resource-criteria": "^0.1.5",
     "constructs": "^10.5.1"
   },
   "keywords": [
@@ -102,6 +104,14 @@
   "version": "0.0.0",
   "jest": {
     "coverageProvider": "v8",
+    "coverageThreshold": {
+      "global": {
+        "branches": 95,
+        "functions": 90,
+        "lines": 100,
+        "statements": 100
+      }
+    },
     "testMatch": [
       "<rootDir>/@(src|test)/**/*(*.)@(spec|test).ts?(x)",
       "<rootDir>/@(src|test)/**/__tests__/**/*.ts?(x)",
