@@ -49,13 +49,3 @@ export const isDetectionFailed = (detectionStatus: string | undefined): boolean 
 export const isStackDrifted = (stackDriftStatus: string | undefined): boolean => {
   return stackDriftStatus === STACK_DRIFT_STATUS_DRIFTED;
 };
-
-/**
- * Returns whether tag filter values should be sent to the tagging API.
- *
- * @param tagValues - Optional values for a tag key.
- * @returns True when the list has at least one value.
- */
-export const hasTagFilterValues = (tagValues?: string[]): boolean => {
-  return Boolean(tagValues && tagValues.length > 0);
-};

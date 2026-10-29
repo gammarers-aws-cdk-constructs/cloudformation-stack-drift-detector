@@ -5,6 +5,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as kms from 'aws-cdk-lib/aws-kms';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as sns from 'aws-cdk-lib/aws-sns';
+import { ConstructResourceCriteria, ConstructResourceTagCriteria as TargetResource } from 'construct-resource-criteria';
 import { Construct } from 'constructs';
 import { DetectorFunction } from './funcs/detector-function';
 
@@ -41,22 +42,6 @@ export enum ReadOnlyAccessGrant {
 }
 
 /**
- * Tag filter used to select CloudFormation stacks for drift detection.
- * Only stacks in a stable status are inspected. When `tagValues` is omitted,
- * every stable stack that has `tagKey` is selected.
- */
-export interface TargetResource {
-  /**
-   * Tag key used for stack discovery.
-   */
-  readonly tagKey: string;
-  /**
-   * Tag values to match. If omitted, any value for {@link TargetResource.tagKey} is accepted.
-   */
-  readonly tagValues?: string[];
-}
-
-/**
  * Properties for {@link CloudFormationStackDriftDetector}.
  */
 export interface CloudFormationStackDriftDetectorProps {
@@ -74,7 +59,9 @@ export interface CloudFormationStackDriftDetectorProps {
    */
   readonly notificationTopicKey?: kms.IKey;
   /**
-   * Tag filter used to select target stacks.
+   * Tag criteria used to select target stacks.
+   * When set, {@link TargetResource.tagKey} must be non-blank and
+   * {@link TargetResource.tagValues} must contain at least one non-blank value.
    * Tagged stacks are limited to stable statuses: `CREATE_COMPLETE`,
    * `UPDATE_COMPLETE`, `UPDATE_ROLLBACK_COMPLETE`, `IMPORT_COMPLETE`, and
    * `IMPORT_ROLLBACK_COMPLETE`.
@@ -114,9 +101,9 @@ export interface CloudFormationStackDriftDetectorProps {
  * CDK construct that runs CloudFormation stack drift detection daily and publishes
  * drifted stacks to SNS.
  *
- * Target stacks are selected by {@link TargetResource} when provided. Tagged stacks
- * are still limited to stable statuses. When the filter is omitted, every stable
- * stack in the account and region is inspected.
+ * Target stacks are selected by {@link TargetResource} when provided.
+ * Tagged stacks are still limited to stable statuses. When the filter is omitted,
+ * every stable stack in the account and region is inspected.
  */
 export class CloudFormationStackDriftDetector extends Construct {
   /**
@@ -140,6 +127,12 @@ export class CloudFormationStackDriftDetector extends Construct {
    */
   constructor(scope: Construct, id: string, props: CloudFormationStackDriftDetectorProps) {
     super(scope, id);
+
+    if (props.targetResource) {
+      ConstructResourceCriteria.assertTagCriteria(props.targetResource, {
+        propPath: 'props.targetResource',
+      });
+    }
 
     this.notificationTopic = props.notificationTopic;
 
@@ -239,7 +232,7 @@ export class CloudFormationStackDriftDetector extends Construct {
   /**
    * Builds the EventBridge target payload passed to the detector Lambda.
    *
-   * @param targetResource - Optional tag filter. When omitted, an empty payload selects all stable stacks.
+   * @param targetResource - Optional tag criteria. When omitted, an empty payload selects all stable stacks.
    * @returns Tag key and values for the Lambda event, or an empty object.
    */
   private getEventInput(targetResource?: TargetResource): { tagKey?: string; tagValues?: string[] } {
@@ -247,16 +240,9 @@ export class CloudFormationStackDriftDetector extends Construct {
       return {};
     }
 
-    const tagValues = targetResource.tagValues;
-    if (tagValues && tagValues.length > 0) {
-      return {
-        tagKey: targetResource.tagKey,
-        tagValues,
-      };
-    }
-
     return {
       tagKey: targetResource.tagKey,
+      tagValues: targetResource.tagValues,
     };
   }
 }

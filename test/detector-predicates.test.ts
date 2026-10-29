@@ -3,7 +3,6 @@ import {
   DETECTION_STATUS_IN_PROGRESS,
   STACK_DRIFT_STATUS_DRIFTED,
   hasNextPage,
-  hasTagFilterValues,
   isDetectionFailed,
   isDetectionInProgress,
   isStackDrifted,
@@ -50,16 +49,6 @@ describe('detector predicates', () => {
       { stackDriftStatus: STACK_DRIFT_STATUS_DRIFTED, expected: true },
     ])('returns $expected when status is $stackDriftStatus', ({ stackDriftStatus, expected }) => {
       expect(isStackDrifted(stackDriftStatus)).toBe(expected);
-    });
-  });
-
-  describe('hasTagFilterValues', () => {
-    it.each([
-      { tagValues: undefined, expected: false },
-      { tagValues: [], expected: false },
-      { tagValues: ['enabled'], expected: true },
-    ])('returns $expected when tagValues is $tagValues', ({ tagValues, expected }) => {
-      expect(hasTagFilterValues(tagValues)).toBe(expected);
     });
   });
 });

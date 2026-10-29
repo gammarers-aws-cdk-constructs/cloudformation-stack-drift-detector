@@ -12,18 +12,18 @@ AWS CDK construct that runs CloudFormation stack drift detection on a daily sche
 ## Features
 
 - Daily EventBridge schedule that invokes a durable Lambda alias
-- Optional tag-based stack selection, or inspect all stable stacks in the account and region
+- Optional tag-based selection of stable stacks, or inspect all stable stacks in the account and region
 - SNS notifications when a stack is `DRIFTED`, including modified and deleted resource drifts
 - Per-stack failure isolation: a failed stack is published to the same SNS topic, remaining stacks are still inspected, and the invocation returns succeeded and failed counts
 - Caller-provided SNS topic (the construct does not create a topic)
 - Configurable durable execution timeout and history retention
 - Optional resource read grants so DetectStackDrift can describe resources in target stacks
 - Optional KMS key grant when publishing to an encrypted SNS topic
-- `CloudformationStackDriftDetectorStack`, a stack that deploys the detector
+- `CloudFormationStackDriftDetectorStack`, a stack that deploys the detector
 
 ## How it works
 
-A daily EventBridge rule invokes the detector Lambda `live` alias. The function selects CloudFormation stacks by tag, or every stable stack in the account and region when no tag is set. It runs DetectStackDrift on each stack, waits until detection finishes, and publishes drifted resource details to the caller-provided SNS topic. If detection fails for one stack, the function publishes a failure notification to the same topic and continues with the remaining stacks. The invocation result reports how many stacks succeeded and how many failed.
+A daily EventBridge rule invokes the detector Lambda `live` alias. The function selects stable CloudFormation stacks by tag, or every stable stack in the account and region when no tag is set. Stacks outside `CREATE_COMPLETE`, `UPDATE_COMPLETE`, `UPDATE_ROLLBACK_COMPLETE`, `IMPORT_COMPLETE`, and `IMPORT_ROLLBACK_COMPLETE` are skipped, including stacks that are creating, updating, or deleting. DetectStackDrift does not run for a skipped stack, and no notification is published for it. The function runs DetectStackDrift on each selected stack, waits until detection finishes, and publishes drifted resource details to the caller-provided SNS topic. If detection fails for one stack, the function publishes a failure notification to the same topic and continues with the remaining stacks. The invocation result reports how many stacks succeeded and how many failed.
 
 DetectStackDrift also reads the live configuration of resources in those stacks. Grant those Describe/Get permissions through `grantReadOnlyAccess`, `additionalPolicyStatements`, or the public `role`.
 
@@ -55,7 +55,7 @@ Inspect every stable CloudFormation stack in the account and region. Provide an 
 import { Stack } from 'aws-cdk-lib';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
-import { CloudformationStackDriftDetector } from 'cloudformation-stack-drift-detector';
+import { CloudFormationStackDriftDetector } from 'cloudformation-stack-drift-detector';
 
 export class DetectorStack extends Stack {
   constructor(scope: Construct, id: string) {
@@ -63,7 +63,7 @@ export class DetectorStack extends Stack {
 
     const topic = new sns.Topic(this, 'DriftNotifications');
 
-    new CloudformationStackDriftDetector(this, 'Detector', {
+    new CloudFormationStackDriftDetector(this, 'Detector', {
       notificationTopic: topic,
     });
   }
@@ -72,25 +72,14 @@ export class DetectorStack extends Stack {
 
 ### Select stacks by tag
 
-Pass `targetResource` to discover stacks through the Resource Groups Tagging API:
+Pass `targetResource` to discover stacks through the Resource Groups Tagging API. `tagKey` and at least one `tagValues` entry are required. Only tagged stacks in a stable status are inspected:
 
 ```typescript
-new CloudformationStackDriftDetector(this, 'Detector', {
+new CloudFormationStackDriftDetector(this, 'Detector', {
   notificationTopic: topic,
   targetResource: {
     tagKey: 'DriftDetection',
     tagValues: ['enabled'],
-  },
-});
-```
-
-Omit `tagValues` to select every stack that has the tag key, regardless of value:
-
-```typescript
-new CloudformationStackDriftDetector(this, 'Detector', {
-  notificationTopic: topic,
-  targetResource: {
-    tagKey: 'DriftDetection',
   },
 });
 ```
@@ -106,7 +95,7 @@ const topic = sns.Topic.fromTopicArn(
   'arn:aws:sns:us-east-1:123456789012:drift-notifications',
 );
 
-new CloudformationStackDriftDetector(this, 'Detector', {
+new CloudFormationStackDriftDetector(this, 'Detector', {
   notificationTopic: topic,
 });
 ```
@@ -116,7 +105,7 @@ new CloudformationStackDriftDetector(this, 'Detector', {
 ```typescript
 import { Duration } from 'aws-cdk-lib';
 
-new CloudformationStackDriftDetector(this, 'Detector', {
+new CloudFormationStackDriftDetector(this, 'Detector', {
   notificationTopic: topic,
   executionTimeout: Duration.hours(2),
   retentionPeriod: Duration.days(14),
@@ -130,7 +119,7 @@ DetectStackDrift also needs Describe/Get on resources inside the target stacks. 
 ```typescript
 import { ReadOnlyAccessGrant } from 'cloudformation-stack-drift-detector';
 
-new CloudformationStackDriftDetector(this, 'Detector', {
+new CloudFormationStackDriftDetector(this, 'Detector', {
   notificationTopic: topic,
   grantReadOnlyAccess: ReadOnlyAccessGrant.ENABLED,
 });
@@ -139,7 +128,7 @@ new CloudformationStackDriftDetector(this, 'Detector', {
 ```typescript
 import * as iam from 'aws-cdk-lib/aws-iam';
 
-const detector = new CloudformationStackDriftDetector(this, 'Detector', {
+const detector = new CloudFormationStackDriftDetector(this, 'Detector', {
   notificationTopic: topic,
   additionalPolicyStatements: [
     new iam.PolicyStatement({
@@ -173,7 +162,7 @@ const topicKey = kms.Key.fromKeyArn(
   'arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012',
 );
 
-new CloudformationStackDriftDetector(this, 'Detector', {
+new CloudFormationStackDriftDetector(this, 'Detector', {
   notificationTopic: topic,
   notificationTopicKey: topicKey,
 });
@@ -181,31 +170,31 @@ new CloudformationStackDriftDetector(this, 'Detector', {
 
 ### Use the included stack
 
-`CloudformationStackDriftDetectorStack` deploys the same detector. Pass the notification topic from another stack, and any other detector option:
+`CloudFormationStackDriftDetectorStack` deploys the same detector. Pass the notification topic from another stack, and any other detector option:
 
 ```typescript
 import { App, Stack } from 'aws-cdk-lib';
 import * as sns from 'aws-cdk-lib/aws-sns';
-import { CloudformationStackDriftDetectorStack } from 'cloudformation-stack-drift-detector';
+import { CloudFormationStackDriftDetectorStack } from 'cloudformation-stack-drift-detector';
 
 const app = new App();
 const topicStack = new Stack(app, 'TopicStack');
 const topic = new sns.Topic(topicStack, 'DriftNotifications');
 
-new CloudformationStackDriftDetectorStack(app, 'DetectorStack', {
+new CloudFormationStackDriftDetectorStack(app, 'DetectorStack', {
   notificationTopic: topic,
 });
 ```
 
 ## Options
 
-These options apply to `CloudformationStackDriftDetector` and `CloudformationStackDriftDetectorStack`. The stack also accepts standard `StackProps`.
+These options apply to `CloudFormationStackDriftDetector` and `CloudFormationStackDriftDetectorStack`. The stack also accepts standard `StackProps`.
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
 | `notificationTopic` | `sns.ITopic` | Yes | SNS topic that receives drift and failure notifications. The construct does not create a topic. |
 | `notificationTopicKey` | `kms.IKey` | No | Customer-managed KMS key that encrypts `notificationTopic`. Use with imported topics, where `grantPublish` cannot grant KMS. |
-| `targetResource` | `TargetResource` | No | Tag filter used to select stacks. If omitted, all stable stacks in the account and region are inspected. |
+| `targetResource` | `TargetResource` | No | Tag criteria used to select stacks. Requires a non-blank `tagKey` and at least one `tagValues` entry. Tagged stacks must also be in a stable status. If omitted, all stable stacks in the account and region are inspected. |
 | `executionTimeout` | `Duration` | No | Maximum duration of a durable execution (default: `Duration.hours(1)`). |
 | `retentionPeriod` | `Duration` | No | How long durable execution history is retained after completion (default: `Duration.days(30)`). |
 | `additionalPolicyStatements` | `iam.PolicyStatement[]` | No | Extra IAM statements attached to the detector Lambda role (for example resource Describe/Get). |
@@ -222,8 +211,8 @@ These options apply to `CloudformationStackDriftDetector` and `CloudformationSta
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
-| `tagKey` | `string` | Yes | Tag key used for stack discovery. |
-| `tagValues` | `string[]` | No | Tag values to match. If omitted, any value for `tagKey` is accepted. |
+| `tagKey` | `string` | Yes | Tag key used for stack discovery. Blank strings are rejected. |
+| `tagValues` | `string[]` | Yes | Tag values to match. At least one non-blank value is required. |
 
 ## API
 

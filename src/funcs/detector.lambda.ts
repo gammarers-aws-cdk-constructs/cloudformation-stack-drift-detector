@@ -16,7 +16,6 @@ import {
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import {
   hasNextPage,
-  hasTagFilterValues,
   isDetectionFailed,
   isDetectionInProgress,
   isStackDrifted,
@@ -62,7 +61,7 @@ export interface DriftDetectionEvent {
   readonly tagKey?: string;
   /**
    * Tag values to match for {@link DriftDetectionEvent.tagKey}.
-   * If omitted, any value for the key is accepted.
+   * Required when `tagKey` is set. At least one value is required.
    */
   readonly tagValues?: string[];
 }
@@ -140,10 +139,10 @@ const getAllStackNames = async (): Promise<string[]> => {
  * are kept only when ListStacks returns them in a stable status.
  *
  * @param tagKey - Tag key to match.
- * @param tagValues - Optional values for `tagKey`. An empty or omitted list matches any value.
+ * @param tagValues - Values for `tagKey`. At least one value is required.
  * @returns Tagged stack names in a complete, non-transitional status, in tagging API order.
  */
-const getTaggedStackNames = async (tagKey: string, tagValues?: string[]): Promise<string[]> => {
+const getTaggedStackNames = async (tagKey: string, tagValues: string[]): Promise<string[]> => {
   const taggedStackNames: string[] = [];
   let paginationToken: string | undefined;
 
@@ -153,7 +152,7 @@ const getTaggedStackNames = async (tagKey: string, tagValues?: string[]): Promis
       TagFilters: [
         {
           Key: tagKey,
-          Values: hasTagFilterValues(tagValues) ? tagValues : undefined,
+          Values: tagValues,
         },
       ],
       PaginationToken: paginationToken,
@@ -179,10 +178,13 @@ const getTaggedStackNames = async (tagKey: string, tagValues?: string[]): Promis
  * @returns Stack names to inspect for drift.
  */
 const getTargetStackNames = async (event: DriftDetectionEvent): Promise<string[]> => {
-  if (event.tagKey) {
-    return getTaggedStackNames(event.tagKey, event.tagValues);
+  if (!event.tagKey) {
+    return getAllStackNames();
   }
-  return getAllStackNames();
+  if (!event.tagValues) {
+    throw new Error('tagValues is required when tagKey is set');
+  }
+  return getTaggedStackNames(event.tagKey, event.tagValues);
 };
 
 /**

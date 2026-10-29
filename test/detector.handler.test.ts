@@ -181,21 +181,12 @@ describe('processDriftDetection', () => {
     });
   });
 
-  it('omits tag values when the filter list is empty', async () => {
-    taggingMock.on(GetResourcesCommand).resolves({
-      ResourceTagMappingList: [{ ResourceARN: STACK_ARN }],
-    });
-    mockStableStacks('TaggedStack');
-    mockInSyncDetection('det-empty-tags');
+  it('throws when tagKey is set without tagValues', async () => {
+    await expect(
+      processDriftDetection({ tagKey: 'DriftDetection' }, createFakeDurableContext()),
+    ).rejects.toThrow('tagValues is required when tagKey is set');
 
-    await processDriftDetection(
-      { tagKey: 'DriftDetection', tagValues: [] },
-      createFakeDurableContext(),
-    );
-
-    expect(taggingMock.commandCalls(GetResourcesCommand)[0].args[0].input.TagFilters).toEqual([
-      { Key: 'DriftDetection' },
-    ]);
+    expect(taggingMock).not.toHaveReceivedCommand(GetResourcesCommand);
   });
 
   it('pages through tagged stack results', async () => {
@@ -210,7 +201,10 @@ describe('processDriftDetection', () => {
     mockStableStacks('TaggedStack', 'OtherStack');
     mockInSyncDetection('det-tag-pages');
 
-    await processDriftDetection({ tagKey: 'DriftDetection' }, createFakeDurableContext());
+    await processDriftDetection(
+      { tagKey: 'DriftDetection', tagValues: ['enabled'] },
+      createFakeDurableContext(),
+    );
 
     expect(taggingMock).toHaveReceivedCommandTimes(GetResourcesCommand, 2);
     expect(cloudFormationMock).toHaveReceivedCommandTimes(DetectStackDriftCommand, 2);
@@ -226,7 +220,10 @@ describe('processDriftDetection', () => {
     mockStableStacks('TaggedStack');
     mockInSyncDetection('det-stable-only');
 
-    await processDriftDetection({ tagKey: 'DriftDetection' }, createFakeDurableContext());
+    await processDriftDetection(
+      { tagKey: 'DriftDetection', tagValues: ['enabled'] },
+      createFakeDurableContext(),
+    );
 
     expect(cloudFormationMock).toHaveReceivedCommandTimes(DetectStackDriftCommand, 1);
     expect(cloudFormationMock).toHaveReceivedCommandWith(DetectStackDriftCommand, {
@@ -240,7 +237,10 @@ describe('processDriftDetection', () => {
     });
 
     await expect(
-      processDriftDetection({ tagKey: 'DriftDetection' }, createFakeDurableContext()),
+      processDriftDetection(
+        { tagKey: 'DriftDetection', tagValues: ['enabled'] },
+        createFakeDurableContext(),
+      ),
     ).rejects.toThrow(`Unable to get stack name from ARN: ${INVALID_STACK_ARN}`);
   });
 

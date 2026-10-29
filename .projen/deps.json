@@ -136,6 +136,11 @@
       "type": "peer"
     },
     {
+      "name": "construct-resource-criteria",
+      "version": "^0.1.5",
+      "type": "peer"
+    },
+    {
       "name": "constructs",
       "version": "^10.5.1",
       "type": "peer"

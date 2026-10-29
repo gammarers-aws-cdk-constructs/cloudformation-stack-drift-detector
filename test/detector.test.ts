@@ -265,52 +265,33 @@ describe('CloudFormationStackDriftDetector', () => {
     });
   });
 
-  describe('with tag key only', () => {
-    const app = new App();
-    const stack = new Stack(app, 'TestStack', {
-      env: {
-        account: '123456789012',
-        region: 'us-east-1',
-      },
-    });
-    new CloudFormationStackDriftDetector(stack, 'Detector', {
-      notificationTopic: getNotificationTopic(stack),
-      targetResource: {
-        tagKey: 'DriftDetection',
-      },
-    });
-    const template = Template.fromStack(stack);
+  describe('with invalid tag criteria', () => {
+    it('rejects a blank tag key', () => {
+      const stack = createTestStack();
 
-    it('should pass only the tag key to the detector', () => {
-      template.hasResourceProperties('AWS::Events::Rule', Match.objectLike({
-        Targets: Match.arrayWith([
-          Match.objectLike({
-            Input: '{"tagKey":"DriftDetection"}',
-          }),
-        ]),
-      }));
+      expect(() => {
+        new CloudFormationStackDriftDetector(stack, 'Detector', {
+          notificationTopic: getNotificationTopic(stack),
+          targetResource: {
+            tagKey: ' ',
+            tagValues: ['enabled'],
+          },
+        });
+      }).toThrow('props.targetResource.tagKey must be a non-blank string.');
     });
-  });
 
-  describe('with empty tag values', () => {
-    const stack = createTestStack();
-    new CloudFormationStackDriftDetector(stack, 'Detector', {
-      notificationTopic: getNotificationTopic(stack),
-      targetResource: {
-        tagKey: 'DriftDetection',
-        tagValues: [],
-      },
-    });
-    const template = Template.fromStack(stack);
+    it('rejects an empty tag value list', () => {
+      const stack = createTestStack();
 
-    it('should omit empty tag values from the detector input', () => {
-      template.hasResourceProperties('AWS::Events::Rule', Match.objectLike({
-        Targets: Match.arrayWith([
-          Match.objectLike({
-            Input: '{"tagKey":"DriftDetection"}',
-          }),
-        ]),
-      }));
+      expect(() => {
+        new CloudFormationStackDriftDetector(stack, 'Detector', {
+          notificationTopic: getNotificationTopic(stack),
+          targetResource: {
+            tagKey: 'DriftDetection',
+            tagValues: [],
+          },
+        });
+      }).toThrow('props.targetResource.tagValues must contain at least one value.');
     });
   });
 
