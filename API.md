@@ -1159,7 +1159,7 @@ const cloudFormationStackDriftDetectorProps: CloudFormationStackDriftDetectorPro
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.grantReadOnlyAccess">grantReadOnlyAccess</a></code> | <code><a href="#cloudformation-stack-drift-detector.ReadOnlyAccessGrant">ReadOnlyAccessGrant</a></code> | Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.notificationTopicKey">notificationTopicKey</a></code> | <code>aws-cdk-lib.aws_kms.IKey</code> | Customer-managed KMS key that encrypts {@link CloudFormationStackDriftDetectorProps.notificationTopic}. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.retentionPeriod">retentionPeriod</a></code> | <code>aws-cdk-lib.Duration</code> | How long durable execution history is retained after completion. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.targetResource">targetResource</a></code> | <code><a href="#cloudformation-stack-drift-detector.TargetResource">TargetResource</a></code> | Tag criteria used to select target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.targetResource">targetResource</a></code> | <code>construct-resource-criteria.ConstructResourceTagCriteria</code> | Tag criteria used to select target stacks. |
 
 ---
 
@@ -1249,10 +1249,10 @@ How long durable execution history is retained after completion.
 ##### `targetResource`<sup>Optional</sup> <a name="targetResource" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.targetResource"></a>
 
 ```typescript
-public readonly targetResource: TargetResource;
+public readonly targetResource: ConstructResourceTagCriteria;
 ```
 
-- *Type:* <a href="#cloudformation-stack-drift-detector.TargetResource">TargetResource</a>
+- *Type:* construct-resource-criteria.ConstructResourceTagCriteria
 
 Tag criteria used to select target stacks.
 
@@ -1287,7 +1287,7 @@ const cloudFormationStackDriftDetectorStackProps: CloudFormationStackDriftDetect
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.grantReadOnlyAccess">grantReadOnlyAccess</a></code> | <code><a href="#cloudformation-stack-drift-detector.ReadOnlyAccessGrant">ReadOnlyAccessGrant</a></code> | Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.notificationTopicKey">notificationTopicKey</a></code> | <code>aws-cdk-lib.aws_kms.IKey</code> | Customer-managed KMS key that encrypts {@link CloudFormationStackDriftDetectorProps.notificationTopic}. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.retentionPeriod">retentionPeriod</a></code> | <code>aws-cdk-lib.Duration</code> | How long durable execution history is retained after completion. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.targetResource">targetResource</a></code> | <code><a href="#cloudformation-stack-drift-detector.TargetResource">TargetResource</a></code> | Tag criteria used to select target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.targetResource">targetResource</a></code> | <code>construct-resource-criteria.ConstructResourceTagCriteria</code> | Tag criteria used to select target stacks. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.analyticsReporting">analyticsReporting</a></code> | <code>boolean</code> | Include runtime versioning information in this Stack. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.crossRegionReferences">crossRegionReferences</a></code> | <code>boolean</code> | Enable this flag to allow native cross region stack references. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.description">description</a></code> | <code>string</code> | A description of the stack. |
@@ -1389,10 +1389,10 @@ How long durable execution history is retained after completion.
 ##### `targetResource`<sup>Optional</sup> <a name="targetResource" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.targetResource"></a>
 
 ```typescript
-public readonly targetResource: TargetResource;
+public readonly targetResource: ConstructResourceTagCriteria;
 ```
 
-- *Type:* <a href="#cloudformation-stack-drift-detector.TargetResource">TargetResource</a>
+- *Type:* construct-resource-criteria.ConstructResourceTagCriteria
 
 Tag criteria used to select target stacks.
 
@@ -1646,56 +1646,6 @@ public readonly terminationProtection: boolean;
 - *Default:* false
 
 Whether to enable termination protection for this stack.
-
----
-
-### TargetResource <a name="TargetResource" id="cloudformation-stack-drift-detector.TargetResource"></a>
-
-Tag criteria used to select CloudFormation stacks for drift detection.
-
-Only stacks in a stable status are inspected.
-`tagKey` must be non-blank, and `tagValues` must contain at least one non-blank value.
-
-#### Initializer <a name="Initializer" id="cloudformation-stack-drift-detector.TargetResource.Initializer"></a>
-
-```typescript
-import { TargetResource } from 'cloudformation-stack-drift-detector'
-
-const targetResource: TargetResource = { ... }
-```
-
-#### Properties <a name="Properties" id="Properties"></a>
-
-| **Name** | **Type** | **Description** |
-| --- | --- | --- |
-| <code><a href="#cloudformation-stack-drift-detector.TargetResource.property.tagKey">tagKey</a></code> | <code>string</code> | Tag key used for stack discovery. |
-| <code><a href="#cloudformation-stack-drift-detector.TargetResource.property.tagValues">tagValues</a></code> | <code>string[]</code> | Tag values to match. |
-
----
-
-##### `tagKey`<sup>Required</sup> <a name="tagKey" id="cloudformation-stack-drift-detector.TargetResource.property.tagKey"></a>
-
-```typescript
-public readonly tagKey: string;
-```
-
-- *Type:* string
-
-Tag key used for stack discovery.
-
----
-
-##### `tagValues`<sup>Required</sup> <a name="tagValues" id="cloudformation-stack-drift-detector.TargetResource.property.tagValues"></a>
-
-```typescript
-public readonly tagValues: string[];
-```
-
-- *Type:* string[]
-
-Tag values to match.
-
-At least one non-blank value is required.
 
 ---
 

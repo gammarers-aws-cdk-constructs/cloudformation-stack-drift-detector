@@ -12,7 +12,7 @@ const project = new ProjenCdkConstructLibrary({
     'construct-resource-criteria@^0.1.5',
   ],
   devDeps: [
-    '@gammarers/projen-projects@^0.5.7',
+    '@gammarers/projen-projects@^0.6.2',
     '@aws/durable-execution-sdk-js@^2.3.0',
     '@aws-sdk/client-cloudformation@^3.1116.0',
     '@aws-sdk/client-resource-groups-tagging-api@^3.1116.0',
