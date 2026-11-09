@@ -45,6 +45,7 @@
     "node_modules/",
     "*.generated.ts",
     "coverage",
+    "src/funcs/detector-function.ts",
     "!.projenrc.ts",
     "!projenrc/**/*.ts"
   ],
