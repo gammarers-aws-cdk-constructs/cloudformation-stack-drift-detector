@@ -13,7 +13,7 @@ const project = new ProjenCdkConstructLibrary({
     'lambda-failure-detector@^0.3.1',
   ],
   devDeps: [
-    '@gammarers/projen-projects@^0.6.2',
+    '@gammarers/projen-projects@^0.8.1',
     '@aws/durable-execution-sdk-js@^3.1.0',
     '@aws/durable-execution-sdk-js-testing@^1.4.0',
     '@aws-sdk/client-cloudformation@^3.1116.0',
