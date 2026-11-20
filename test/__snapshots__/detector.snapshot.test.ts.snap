@@ -10,7 +10,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches custom schedule: cus
     },
   },
   "Resources": {
-    "DetectorFunctionCurrentVersion6C5B223Ee4bac4e566b2626761124385d434ed6c": {
+    "DetectorFunctionCurrentVersion6C5B223Ecb375d416a0876bf294e0318e356202a": {
       "Metadata": {
         "aws:cdk:do-not-refactor": true,
       },
@@ -29,7 +29,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches custom schedule: cus
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "fbb1605e237ace59ef755b01ad19f91e6e26eefa437d6da10b106f37eab6567d.zip",
+          "S3Key": "10528d9174118c39ace426794001024f95189714112f6d1ba703ff15355fe24b.zip",
         },
         "Description": "src/funcs/detector.lambda.ts",
         "DurableConfig": {
@@ -162,7 +162,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches custom schedule: cus
         },
         "FunctionVersion": {
           "Fn::GetAtt": [
-            "DetectorFunctionCurrentVersion6C5B223Ee4bac4e566b2626761124385d434ed6c",
+            "DetectorFunctionCurrentVersion6C5B223Ecb375d416a0876bf294e0318e356202a",
             "Version",
           ],
         },
@@ -295,7 +295,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches custom timing: custo
     },
   },
   "Resources": {
-    "DetectorFunctionCurrentVersion6C5B223Ed8b7fcd0df894df1ccef23b257dc8992": {
+    "DetectorFunctionCurrentVersion6C5B223Ea524fbc107ced289142b920529b80058": {
       "Metadata": {
         "aws:cdk:do-not-refactor": true,
       },
@@ -314,7 +314,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches custom timing: custo
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "fbb1605e237ace59ef755b01ad19f91e6e26eefa437d6da10b106f37eab6567d.zip",
+          "S3Key": "10528d9174118c39ace426794001024f95189714112f6d1ba703ff15355fe24b.zip",
         },
         "Description": "src/funcs/detector.lambda.ts",
         "DurableConfig": {
@@ -447,7 +447,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches custom timing: custo
         },
         "FunctionVersion": {
           "Fn::GetAtt": [
-            "DetectorFunctionCurrentVersion6C5B223Ed8b7fcd0df894df1ccef23b257dc8992",
+            "DetectorFunctionCurrentVersion6C5B223Ea524fbc107ced289142b920529b80058",
             "Version",
           ],
         },
@@ -580,7 +580,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches defaults: defaults 1
     },
   },
   "Resources": {
-    "DetectorFunctionCurrentVersion6C5B223Ee4bac4e566b2626761124385d434ed6c": {
+    "DetectorFunctionCurrentVersion6C5B223Ecb375d416a0876bf294e0318e356202a": {
       "Metadata": {
         "aws:cdk:do-not-refactor": true,
       },
@@ -599,7 +599,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches defaults: defaults 1
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "fbb1605e237ace59ef755b01ad19f91e6e26eefa437d6da10b106f37eab6567d.zip",
+          "S3Key": "10528d9174118c39ace426794001024f95189714112f6d1ba703ff15355fe24b.zip",
         },
         "Description": "src/funcs/detector.lambda.ts",
         "DurableConfig": {
@@ -732,7 +732,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches defaults: defaults 1
         },
         "FunctionVersion": {
           "Fn::GetAtt": [
-            "DetectorFunctionCurrentVersion6C5B223Ee4bac4e566b2626761124385d434ed6c",
+            "DetectorFunctionCurrentVersion6C5B223Ecb375d416a0876bf294e0318e356202a",
             "Version",
           ],
         },
@@ -955,7 +955,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches failure detection: f
       },
       "Type": "AWS::CloudWatch::Alarm",
     },
-    "DetectorFunctionCurrentVersion6C5B223E0714b3ac22f23e31ff05fd6891c9a9b1": {
+    "DetectorFunctionCurrentVersion6C5B223E7f3f2d3e622271e6b59c437e917545ec": {
       "Metadata": {
         "aws:cdk:do-not-refactor": true,
       },
@@ -974,7 +974,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches failure detection: f
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "fbb1605e237ace59ef755b01ad19f91e6e26eefa437d6da10b106f37eab6567d.zip",
+          "S3Key": "10528d9174118c39ace426794001024f95189714112f6d1ba703ff15355fe24b.zip",
         },
         "Description": "src/funcs/detector.lambda.ts",
         "DurableConfig": {
@@ -1112,7 +1112,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches failure detection: f
         },
         "FunctionVersion": {
           "Fn::GetAtt": [
-            "DetectorFunctionCurrentVersion6C5B223E0714b3ac22f23e31ff05fd6891c9a9b1",
+            "DetectorFunctionCurrentVersion6C5B223E7f3f2d3e622271e6b59c437e917545ec",
             "Version",
           ],
         },
@@ -1253,7 +1253,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches notification topic k
     },
   },
   "Resources": {
-    "DetectorFunctionCurrentVersion6C5B223Ee4bac4e566b2626761124385d434ed6c": {
+    "DetectorFunctionCurrentVersion6C5B223Ecb375d416a0876bf294e0318e356202a": {
       "Metadata": {
         "aws:cdk:do-not-refactor": true,
       },
@@ -1272,7 +1272,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches notification topic k
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "fbb1605e237ace59ef755b01ad19f91e6e26eefa437d6da10b106f37eab6567d.zip",
+          "S3Key": "10528d9174118c39ace426794001024f95189714112f6d1ba703ff15355fe24b.zip",
         },
         "Description": "src/funcs/detector.lambda.ts",
         "DurableConfig": {
@@ -1420,7 +1420,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches notification topic k
         },
         "FunctionVersion": {
           "Fn::GetAtt": [
-            "DetectorFunctionCurrentVersion6C5B223Ee4bac4e566b2626761124385d434ed6c",
+            "DetectorFunctionCurrentVersion6C5B223Ecb375d416a0876bf294e0318e356202a",
             "Version",
           ],
         },
@@ -1584,7 +1584,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches target resource: tar
     },
   },
   "Resources": {
-    "DetectorFunctionCurrentVersion6C5B223Ee4bac4e566b2626761124385d434ed6c": {
+    "DetectorFunctionCurrentVersion6C5B223Ecb375d416a0876bf294e0318e356202a": {
       "Metadata": {
         "aws:cdk:do-not-refactor": true,
       },
@@ -1603,7 +1603,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches target resource: tar
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "fbb1605e237ace59ef755b01ad19f91e6e26eefa437d6da10b106f37eab6567d.zip",
+          "S3Key": "10528d9174118c39ace426794001024f95189714112f6d1ba703ff15355fe24b.zip",
         },
         "Description": "src/funcs/detector.lambda.ts",
         "DurableConfig": {
@@ -1736,7 +1736,7 @@ exports[`CloudFormationStackDriftDetector snapshots matches target resource: tar
         },
         "FunctionVersion": {
           "Fn::GetAtt": [
-            "DetectorFunctionCurrentVersion6C5B223Ee4bac4e566b2626761124385d434ed6c",
+            "DetectorFunctionCurrentVersion6C5B223Ecb375d416a0876bf294e0318e356202a",
             "Version",
           ],
         },
