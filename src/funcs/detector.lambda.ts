@@ -277,7 +277,7 @@ const readPositiveIntegerEnv = (envName: string, fallback: number): number => {
 
   const value = Number(raw);
   if (!Number.isInteger(value) || value < 1) {
-    throw new Error(`${envName} must be an integer greater than or equal to 1`);
+    throw new Error(`${envName} is ${raw}, expected an integer greater than or equal to 1`);
   }
 
   return value;

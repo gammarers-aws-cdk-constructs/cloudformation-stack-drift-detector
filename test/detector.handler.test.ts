@@ -833,13 +833,13 @@ describe('processDriftDetection', () => {
 
       const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
-      await expect(processDriftDetection({}, createFakeDurableContext())).rejects.toThrow(
-        'DETECTION_MAX_STATUS_CHECKS must be an integer greater than or equal to 1',
-      );
+      const message = `DETECTION_MAX_STATUS_CHECKS is ${value}, expected an integer greater than or equal to 1`;
+
+      await expect(processDriftDetection({}, createFakeDurableContext())).rejects.toThrow(message);
 
       expect(errorSpy).toHaveBeenCalledWith(DRIFT_DETECTION_FAILED, {
         stackNames: undefined,
-        message: 'DETECTION_MAX_STATUS_CHECKS must be an integer greater than or equal to 1',
+        message,
       });
       expect(JSON.stringify(errorSpy.mock.calls)).not.toContain(TOPIC_ARN);
       expect(cloudFormationMock).not.toHaveReceivedCommand(ListStacksCommand);
