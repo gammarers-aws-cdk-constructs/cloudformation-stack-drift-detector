@@ -1,0 +1,1860 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`CloudFormationStackDriftDetector snapshots matches custom schedule: custom schedule 1`] = `
+{
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "DetectorFunctionCurrentVersion6C5B223E0c502cadc350014cafa14510aa9b23c5": {
+      "Metadata": {
+        "aws:cdk:do-not-refactor": true,
+      },
+      "Properties": {
+        "FunctionName": {
+          "Ref": "DetectorFunctionDD6A428A",
+        },
+      },
+      "Type": "AWS::Lambda::Version",
+    },
+    "DetectorFunctionDD6A428A": {
+      "DependsOn": [
+        "DetectorFunctionServiceRoleDefaultPolicy02B4D23F",
+        "DetectorFunctionServiceRole9E6382DE",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "dc9162d69b3cd8ddc37aa02ea8c5c5435edc7dcee6d9799c462d4ad94e214de5.zip",
+        },
+        "Description": "src/funcs/detector.lambda.ts",
+        "DurableConfig": {
+          "ExecutionTimeout": 43200,
+          "RetentionPeriodInDays": 30,
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "DETECTION_MAX_STATUS_CHECKS": "20",
+            "DETECTION_WAIT_INTERVAL_SECONDS": "30",
+            "NOTIFICATION_TOPIC_ARN": "arn:aws:sns:us-east-1:123456789012:existing-topic",
+            "STACK_DETECTION_MAX_CONCURRENCY": "5",
+          },
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "DetectorFunctionServiceRole9E6382DE",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs24.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "DetectorFunctionServiceRole9E6382DE": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicDurableExecutionRolePolicy",
+              ],
+            ],
+          },
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/ReadOnlyAccess",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DetectorFunctionServiceRoleDefaultPolicy02B4D23F": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "cloudformation:DetectStackDrift",
+                "cloudformation:DetectStackResourceDrift",
+                "cloudformation:DescribeStackResourceDrifts",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":cloudformation:us-east-1:123456789012:stack/*/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "cloudformation:DescribeStackDriftDetectionStatus",
+                "cloudformation:ListStacks",
+                "cloudformation:BatchDescribeTypeConfigurations",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "tag:GetResources",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "sns:Publish",
+              "Effect": "Allow",
+              "Resource": "arn:aws:sns:us-east-1:123456789012:existing-topic",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DetectorFunctionServiceRoleDefaultPolicy02B4D23F",
+        "Roles": [
+          {
+            "Ref": "DetectorFunctionServiceRole9E6382DE",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "DetectorLive0E739282": {
+      "Properties": {
+        "FunctionName": {
+          "Ref": "DetectorFunctionDD6A428A",
+        },
+        "FunctionVersion": {
+          "Fn::GetAtt": [
+            "DetectorFunctionCurrentVersion6C5B223E0c502cadc350014cafa14510aa9b23c5",
+            "Version",
+          ],
+        },
+        "Name": "live",
+      },
+      "Type": "AWS::Lambda::Alias",
+    },
+    "DetectorSchedule6BF330E5": {
+      "Properties": {
+        "FlexibleTimeWindow": {
+          "Mode": "OFF",
+        },
+        "ScheduleExpression": "cron(0 9 ? * MON *)",
+        "ScheduleExpressionTimezone": "Asia/Tokyo",
+        "State": "DISABLED",
+        "Target": {
+          "Arn": {
+            "Ref": "DetectorLive0E739282",
+          },
+          "Input": "{}",
+          "RetryPolicy": {
+            "MaximumEventAgeInSeconds": 86400,
+            "MaximumRetryAttempts": 185,
+          },
+          "RoleArn": {
+            "Fn::GetAtt": [
+              "SchedulerRoleForTarget66b8dd8E059CD9",
+              "Arn",
+            ],
+          },
+        },
+      },
+      "Type": "AWS::Scheduler::Schedule",
+    },
+    "SchedulerRoleForTarget66b8dd8E059CD9": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": "123456789012",
+                  "aws:SourceArn": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":scheduler:us-east-1:123456789012:schedule-group/default",
+                      ],
+                    ],
+                  },
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "scheduler.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SchedulerRoleForTarget66b8ddDefaultPolicyC74AF327": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "DetectorLive0E739282",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SchedulerRoleForTarget66b8ddDefaultPolicyC74AF327",
+        "Roles": [
+          {
+            "Ref": "SchedulerRoleForTarget66b8dd8E059CD9",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`CloudFormationStackDriftDetector snapshots matches custom timing: custom timing 1`] = `
+{
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "DetectorFunctionCurrentVersion6C5B223Ec745a297e3dc2928788e6cda2a5ef0e2": {
+      "Metadata": {
+        "aws:cdk:do-not-refactor": true,
+      },
+      "Properties": {
+        "FunctionName": {
+          "Ref": "DetectorFunctionDD6A428A",
+        },
+      },
+      "Type": "AWS::Lambda::Version",
+    },
+    "DetectorFunctionDD6A428A": {
+      "DependsOn": [
+        "DetectorFunctionServiceRoleDefaultPolicy02B4D23F",
+        "DetectorFunctionServiceRole9E6382DE",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "dc9162d69b3cd8ddc37aa02ea8c5c5435edc7dcee6d9799c462d4ad94e214de5.zip",
+        },
+        "Description": "src/funcs/detector.lambda.ts",
+        "DurableConfig": {
+          "ExecutionTimeout": 7200,
+          "RetentionPeriodInDays": 14,
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "DETECTION_MAX_STATUS_CHECKS": "10",
+            "DETECTION_WAIT_INTERVAL_SECONDS": "60",
+            "NOTIFICATION_TOPIC_ARN": "arn:aws:sns:us-east-1:123456789012:existing-topic",
+            "STACK_DETECTION_MAX_CONCURRENCY": "2",
+          },
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "DetectorFunctionServiceRole9E6382DE",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs24.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "DetectorFunctionServiceRole9E6382DE": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicDurableExecutionRolePolicy",
+              ],
+            ],
+          },
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/ReadOnlyAccess",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DetectorFunctionServiceRoleDefaultPolicy02B4D23F": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "cloudformation:DetectStackDrift",
+                "cloudformation:DetectStackResourceDrift",
+                "cloudformation:DescribeStackResourceDrifts",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":cloudformation:us-east-1:123456789012:stack/*/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "cloudformation:DescribeStackDriftDetectionStatus",
+                "cloudformation:ListStacks",
+                "cloudformation:BatchDescribeTypeConfigurations",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "tag:GetResources",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "sns:Publish",
+              "Effect": "Allow",
+              "Resource": "arn:aws:sns:us-east-1:123456789012:existing-topic",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DetectorFunctionServiceRoleDefaultPolicy02B4D23F",
+        "Roles": [
+          {
+            "Ref": "DetectorFunctionServiceRole9E6382DE",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "DetectorLive0E739282": {
+      "Properties": {
+        "FunctionName": {
+          "Ref": "DetectorFunctionDD6A428A",
+        },
+        "FunctionVersion": {
+          "Fn::GetAtt": [
+            "DetectorFunctionCurrentVersion6C5B223Ec745a297e3dc2928788e6cda2a5ef0e2",
+            "Version",
+          ],
+        },
+        "Name": "live",
+      },
+      "Type": "AWS::Lambda::Alias",
+    },
+    "DetectorSchedule6BF330E5": {
+      "Properties": {
+        "FlexibleTimeWindow": {
+          "Mode": "OFF",
+        },
+        "ScheduleExpression": "cron(12 9 * * ? *)",
+        "ScheduleExpressionTimezone": "Etc/UTC",
+        "State": "ENABLED",
+        "Target": {
+          "Arn": {
+            "Ref": "DetectorLive0E739282",
+          },
+          "Input": "{}",
+          "RetryPolicy": {
+            "MaximumEventAgeInSeconds": 86400,
+            "MaximumRetryAttempts": 185,
+          },
+          "RoleArn": {
+            "Fn::GetAtt": [
+              "SchedulerRoleForTarget66b8dd8E059CD9",
+              "Arn",
+            ],
+          },
+        },
+      },
+      "Type": "AWS::Scheduler::Schedule",
+    },
+    "SchedulerRoleForTarget66b8dd8E059CD9": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": "123456789012",
+                  "aws:SourceArn": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":scheduler:us-east-1:123456789012:schedule-group/default",
+                      ],
+                    ],
+                  },
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "scheduler.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SchedulerRoleForTarget66b8ddDefaultPolicyC74AF327": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "DetectorLive0E739282",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SchedulerRoleForTarget66b8ddDefaultPolicyC74AF327",
+        "Roles": [
+          {
+            "Ref": "SchedulerRoleForTarget66b8dd8E059CD9",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`CloudFormationStackDriftDetector snapshots matches defaults: defaults 1`] = `
+{
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "DetectorFunctionCurrentVersion6C5B223E0c502cadc350014cafa14510aa9b23c5": {
+      "Metadata": {
+        "aws:cdk:do-not-refactor": true,
+      },
+      "Properties": {
+        "FunctionName": {
+          "Ref": "DetectorFunctionDD6A428A",
+        },
+      },
+      "Type": "AWS::Lambda::Version",
+    },
+    "DetectorFunctionDD6A428A": {
+      "DependsOn": [
+        "DetectorFunctionServiceRoleDefaultPolicy02B4D23F",
+        "DetectorFunctionServiceRole9E6382DE",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "dc9162d69b3cd8ddc37aa02ea8c5c5435edc7dcee6d9799c462d4ad94e214de5.zip",
+        },
+        "Description": "src/funcs/detector.lambda.ts",
+        "DurableConfig": {
+          "ExecutionTimeout": 43200,
+          "RetentionPeriodInDays": 30,
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "DETECTION_MAX_STATUS_CHECKS": "20",
+            "DETECTION_WAIT_INTERVAL_SECONDS": "30",
+            "NOTIFICATION_TOPIC_ARN": "arn:aws:sns:us-east-1:123456789012:existing-topic",
+            "STACK_DETECTION_MAX_CONCURRENCY": "5",
+          },
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "DetectorFunctionServiceRole9E6382DE",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs24.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "DetectorFunctionServiceRole9E6382DE": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicDurableExecutionRolePolicy",
+              ],
+            ],
+          },
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/ReadOnlyAccess",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DetectorFunctionServiceRoleDefaultPolicy02B4D23F": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "cloudformation:DetectStackDrift",
+                "cloudformation:DetectStackResourceDrift",
+                "cloudformation:DescribeStackResourceDrifts",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":cloudformation:us-east-1:123456789012:stack/*/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "cloudformation:DescribeStackDriftDetectionStatus",
+                "cloudformation:ListStacks",
+                "cloudformation:BatchDescribeTypeConfigurations",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "tag:GetResources",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "sns:Publish",
+              "Effect": "Allow",
+              "Resource": "arn:aws:sns:us-east-1:123456789012:existing-topic",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DetectorFunctionServiceRoleDefaultPolicy02B4D23F",
+        "Roles": [
+          {
+            "Ref": "DetectorFunctionServiceRole9E6382DE",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "DetectorLive0E739282": {
+      "Properties": {
+        "FunctionName": {
+          "Ref": "DetectorFunctionDD6A428A",
+        },
+        "FunctionVersion": {
+          "Fn::GetAtt": [
+            "DetectorFunctionCurrentVersion6C5B223E0c502cadc350014cafa14510aa9b23c5",
+            "Version",
+          ],
+        },
+        "Name": "live",
+      },
+      "Type": "AWS::Lambda::Alias",
+    },
+    "DetectorSchedule6BF330E5": {
+      "Properties": {
+        "FlexibleTimeWindow": {
+          "Mode": "OFF",
+        },
+        "ScheduleExpression": "cron(12 9 * * ? *)",
+        "ScheduleExpressionTimezone": "Etc/UTC",
+        "State": "ENABLED",
+        "Target": {
+          "Arn": {
+            "Ref": "DetectorLive0E739282",
+          },
+          "Input": "{}",
+          "RetryPolicy": {
+            "MaximumEventAgeInSeconds": 86400,
+            "MaximumRetryAttempts": 185,
+          },
+          "RoleArn": {
+            "Fn::GetAtt": [
+              "SchedulerRoleForTarget66b8dd8E059CD9",
+              "Arn",
+            ],
+          },
+        },
+      },
+      "Type": "AWS::Scheduler::Schedule",
+    },
+    "SchedulerRoleForTarget66b8dd8E059CD9": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": "123456789012",
+                  "aws:SourceArn": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":scheduler:us-east-1:123456789012:schedule-group/default",
+                      ],
+                    ],
+                  },
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "scheduler.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SchedulerRoleForTarget66b8ddDefaultPolicyC74AF327": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "DetectorLive0E739282",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SchedulerRoleForTarget66b8ddDefaultPolicyC74AF327",
+        "Roles": [
+          {
+            "Ref": "SchedulerRoleForTarget66b8dd8E059CD9",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`CloudFormationStackDriftDetector snapshots matches failure detection: failure detection 1`] = `
+{
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "AlarmTopicD01E77F9": {
+      "Type": "AWS::SNS::Topic",
+    },
+    "DetectorFailureDetectionDriftDetectionFailedAlarm5D1907F6": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "AlarmTopicD01E77F9",
+          },
+        ],
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "EvaluationPeriods": 1,
+        "MetricName": "DriftDetectionFailed",
+        "Namespace": "CloudFormationStackDriftDetector",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 1,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "DetectorFailureDetectionDriftDetectionFailedMetric06E6FD1F": {
+      "Properties": {
+        "FilterPattern": ""DriftDetectionFailed"",
+        "LogGroupName": {
+          "Ref": "DetectorLogGroup7F84711E",
+        },
+        "MetricTransformations": [
+          {
+            "DefaultValue": 0,
+            "MetricName": "DriftDetectionFailed",
+            "MetricNamespace": "CloudFormationStackDriftDetector",
+            "MetricValue": "1",
+          },
+        ],
+      },
+      "Type": "AWS::Logs::MetricFilter",
+    },
+    "DetectorFailureDetectionLambdaErrorsAlarmF28D27C8": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "AlarmTopicD01E77F9",
+          },
+        ],
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "DetectorFunctionDD6A428A",
+            },
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 1,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "DetectorFailureDetectionLambdaThrottlesAlarm072E786B": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "AlarmTopicD01E77F9",
+          },
+        ],
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "DetectorFunctionDD6A428A",
+            },
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "Throttles",
+        "Namespace": "AWS/Lambda",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 1,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "DetectorFunctionCurrentVersion6C5B223E5cd6bce662d022e6e3b29c233ec6a150": {
+      "Metadata": {
+        "aws:cdk:do-not-refactor": true,
+      },
+      "Properties": {
+        "FunctionName": {
+          "Ref": "DetectorFunctionDD6A428A",
+        },
+      },
+      "Type": "AWS::Lambda::Version",
+    },
+    "DetectorFunctionDD6A428A": {
+      "DependsOn": [
+        "DetectorFunctionServiceRoleDefaultPolicy02B4D23F",
+        "DetectorFunctionServiceRole9E6382DE",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "dc9162d69b3cd8ddc37aa02ea8c5c5435edc7dcee6d9799c462d4ad94e214de5.zip",
+        },
+        "Description": "src/funcs/detector.lambda.ts",
+        "DurableConfig": {
+          "ExecutionTimeout": 43200,
+          "RetentionPeriodInDays": 30,
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "DETECTION_MAX_STATUS_CHECKS": "20",
+            "DETECTION_WAIT_INTERVAL_SECONDS": "30",
+            "NOTIFICATION_TOPIC_ARN": "arn:aws:sns:us-east-1:123456789012:existing-topic",
+            "STACK_DETECTION_MAX_CONCURRENCY": "5",
+          },
+        },
+        "Handler": "index.handler",
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "DetectorLogGroup7F84711E",
+          },
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "DetectorFunctionServiceRole9E6382DE",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs24.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "DetectorFunctionServiceRole9E6382DE": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicDurableExecutionRolePolicy",
+              ],
+            ],
+          },
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/ReadOnlyAccess",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DetectorFunctionServiceRoleDefaultPolicy02B4D23F": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "cloudformation:DetectStackDrift",
+                "cloudformation:DetectStackResourceDrift",
+                "cloudformation:DescribeStackResourceDrifts",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":cloudformation:us-east-1:123456789012:stack/*/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "cloudformation:DescribeStackDriftDetectionStatus",
+                "cloudformation:ListStacks",
+                "cloudformation:BatchDescribeTypeConfigurations",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "tag:GetResources",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "sns:Publish",
+              "Effect": "Allow",
+              "Resource": "arn:aws:sns:us-east-1:123456789012:existing-topic",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DetectorFunctionServiceRoleDefaultPolicy02B4D23F",
+        "Roles": [
+          {
+            "Ref": "DetectorFunctionServiceRole9E6382DE",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "DetectorLive0E739282": {
+      "Properties": {
+        "FunctionName": {
+          "Ref": "DetectorFunctionDD6A428A",
+        },
+        "FunctionVersion": {
+          "Fn::GetAtt": [
+            "DetectorFunctionCurrentVersion6C5B223E5cd6bce662d022e6e3b29c233ec6a150",
+            "Version",
+          ],
+        },
+        "Name": "live",
+      },
+      "Type": "AWS::Lambda::Alias",
+    },
+    "DetectorLogGroup7F84711E": {
+      "DeletionPolicy": "RetainExceptOnCreate",
+      "Properties": {
+        "RetentionInDays": 365,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "DetectorSchedule6BF330E5": {
+      "Properties": {
+        "FlexibleTimeWindow": {
+          "Mode": "OFF",
+        },
+        "ScheduleExpression": "cron(12 9 * * ? *)",
+        "ScheduleExpressionTimezone": "Etc/UTC",
+        "State": "ENABLED",
+        "Target": {
+          "Arn": {
+            "Ref": "DetectorLive0E739282",
+          },
+          "Input": "{}",
+          "RetryPolicy": {
+            "MaximumEventAgeInSeconds": 86400,
+            "MaximumRetryAttempts": 185,
+          },
+          "RoleArn": {
+            "Fn::GetAtt": [
+              "SchedulerRoleForTarget66b8dd8E059CD9",
+              "Arn",
+            ],
+          },
+        },
+      },
+      "Type": "AWS::Scheduler::Schedule",
+    },
+    "SchedulerRoleForTarget66b8dd8E059CD9": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": "123456789012",
+                  "aws:SourceArn": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":scheduler:us-east-1:123456789012:schedule-group/default",
+                      ],
+                    ],
+                  },
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "scheduler.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SchedulerRoleForTarget66b8ddDefaultPolicyC74AF327": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "DetectorLive0E739282",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SchedulerRoleForTarget66b8ddDefaultPolicyC74AF327",
+        "Roles": [
+          {
+            "Ref": "SchedulerRoleForTarget66b8dd8E059CD9",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`CloudFormationStackDriftDetector snapshots matches notification topic key: notification topic key 1`] = `
+{
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "DetectorFunctionCurrentVersion6C5B223E0c502cadc350014cafa14510aa9b23c5": {
+      "Metadata": {
+        "aws:cdk:do-not-refactor": true,
+      },
+      "Properties": {
+        "FunctionName": {
+          "Ref": "DetectorFunctionDD6A428A",
+        },
+      },
+      "Type": "AWS::Lambda::Version",
+    },
+    "DetectorFunctionDD6A428A": {
+      "DependsOn": [
+        "DetectorFunctionServiceRoleDefaultPolicy02B4D23F",
+        "DetectorFunctionServiceRole9E6382DE",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "dc9162d69b3cd8ddc37aa02ea8c5c5435edc7dcee6d9799c462d4ad94e214de5.zip",
+        },
+        "Description": "src/funcs/detector.lambda.ts",
+        "DurableConfig": {
+          "ExecutionTimeout": 43200,
+          "RetentionPeriodInDays": 30,
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "DETECTION_MAX_STATUS_CHECKS": "20",
+            "DETECTION_WAIT_INTERVAL_SECONDS": "30",
+            "NOTIFICATION_TOPIC_ARN": "arn:aws:sns:us-east-1:123456789012:existing-topic",
+            "STACK_DETECTION_MAX_CONCURRENCY": "5",
+          },
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "DetectorFunctionServiceRole9E6382DE",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs24.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "DetectorFunctionServiceRole9E6382DE": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicDurableExecutionRolePolicy",
+              ],
+            ],
+          },
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/ReadOnlyAccess",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DetectorFunctionServiceRoleDefaultPolicy02B4D23F": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "cloudformation:DetectStackDrift",
+                "cloudformation:DetectStackResourceDrift",
+                "cloudformation:DescribeStackResourceDrifts",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":cloudformation:us-east-1:123456789012:stack/*/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "cloudformation:DescribeStackDriftDetectionStatus",
+                "cloudformation:ListStacks",
+                "cloudformation:BatchDescribeTypeConfigurations",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "tag:GetResources",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "sns:Publish",
+              "Effect": "Allow",
+              "Resource": "arn:aws:sns:us-east-1:123456789012:existing-topic",
+            },
+            {
+              "Action": [
+                "kms:Decrypt",
+                "kms:Encrypt",
+                "kms:ReEncrypt*",
+                "kms:GenerateDataKey*",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "TopicKeyB2E0C9CB",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DetectorFunctionServiceRoleDefaultPolicy02B4D23F",
+        "Roles": [
+          {
+            "Ref": "DetectorFunctionServiceRole9E6382DE",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "DetectorLive0E739282": {
+      "Properties": {
+        "FunctionName": {
+          "Ref": "DetectorFunctionDD6A428A",
+        },
+        "FunctionVersion": {
+          "Fn::GetAtt": [
+            "DetectorFunctionCurrentVersion6C5B223E0c502cadc350014cafa14510aa9b23c5",
+            "Version",
+          ],
+        },
+        "Name": "live",
+      },
+      "Type": "AWS::Lambda::Alias",
+    },
+    "DetectorSchedule6BF330E5": {
+      "Properties": {
+        "FlexibleTimeWindow": {
+          "Mode": "OFF",
+        },
+        "ScheduleExpression": "cron(12 9 * * ? *)",
+        "ScheduleExpressionTimezone": "Etc/UTC",
+        "State": "ENABLED",
+        "Target": {
+          "Arn": {
+            "Ref": "DetectorLive0E739282",
+          },
+          "Input": "{}",
+          "RetryPolicy": {
+            "MaximumEventAgeInSeconds": 86400,
+            "MaximumRetryAttempts": 185,
+          },
+          "RoleArn": {
+            "Fn::GetAtt": [
+              "SchedulerRoleForTarget66b8dd8E059CD9",
+              "Arn",
+            ],
+          },
+        },
+      },
+      "Type": "AWS::Scheduler::Schedule",
+    },
+    "SchedulerRoleForTarget66b8dd8E059CD9": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": "123456789012",
+                  "aws:SourceArn": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":scheduler:us-east-1:123456789012:schedule-group/default",
+                      ],
+                    ],
+                  },
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "scheduler.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SchedulerRoleForTarget66b8ddDefaultPolicyC74AF327": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "DetectorLive0E739282",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SchedulerRoleForTarget66b8ddDefaultPolicyC74AF327",
+        "Roles": [
+          {
+            "Ref": "SchedulerRoleForTarget66b8dd8E059CD9",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TopicKeyB2E0C9CB": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "KeyPolicy": {
+          "Statement": [
+            {
+              "Action": "kms:*",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":iam::123456789012:root",
+                    ],
+                  ],
+                },
+              },
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::KMS::Key",
+      "UpdateReplacePolicy": "Retain",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`CloudFormationStackDriftDetector snapshots matches target resource: target resource 1`] = `
+{
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "DetectorFunctionCurrentVersion6C5B223E0c502cadc350014cafa14510aa9b23c5": {
+      "Metadata": {
+        "aws:cdk:do-not-refactor": true,
+      },
+      "Properties": {
+        "FunctionName": {
+          "Ref": "DetectorFunctionDD6A428A",
+        },
+      },
+      "Type": "AWS::Lambda::Version",
+    },
+    "DetectorFunctionDD6A428A": {
+      "DependsOn": [
+        "DetectorFunctionServiceRoleDefaultPolicy02B4D23F",
+        "DetectorFunctionServiceRole9E6382DE",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "dc9162d69b3cd8ddc37aa02ea8c5c5435edc7dcee6d9799c462d4ad94e214de5.zip",
+        },
+        "Description": "src/funcs/detector.lambda.ts",
+        "DurableConfig": {
+          "ExecutionTimeout": 43200,
+          "RetentionPeriodInDays": 30,
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "DETECTION_MAX_STATUS_CHECKS": "20",
+            "DETECTION_WAIT_INTERVAL_SECONDS": "30",
+            "NOTIFICATION_TOPIC_ARN": "arn:aws:sns:us-east-1:123456789012:existing-topic",
+            "STACK_DETECTION_MAX_CONCURRENCY": "5",
+          },
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "DetectorFunctionServiceRole9E6382DE",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs24.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "DetectorFunctionServiceRole9E6382DE": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicDurableExecutionRolePolicy",
+              ],
+            ],
+          },
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/ReadOnlyAccess",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DetectorFunctionServiceRoleDefaultPolicy02B4D23F": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "cloudformation:DetectStackDrift",
+                "cloudformation:DetectStackResourceDrift",
+                "cloudformation:DescribeStackResourceDrifts",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":cloudformation:us-east-1:123456789012:stack/*/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "cloudformation:DescribeStackDriftDetectionStatus",
+                "cloudformation:ListStacks",
+                "cloudformation:BatchDescribeTypeConfigurations",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "tag:GetResources",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "sns:Publish",
+              "Effect": "Allow",
+              "Resource": "arn:aws:sns:us-east-1:123456789012:existing-topic",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DetectorFunctionServiceRoleDefaultPolicy02B4D23F",
+        "Roles": [
+          {
+            "Ref": "DetectorFunctionServiceRole9E6382DE",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "DetectorLive0E739282": {
+      "Properties": {
+        "FunctionName": {
+          "Ref": "DetectorFunctionDD6A428A",
+        },
+        "FunctionVersion": {
+          "Fn::GetAtt": [
+            "DetectorFunctionCurrentVersion6C5B223E0c502cadc350014cafa14510aa9b23c5",
+            "Version",
+          ],
+        },
+        "Name": "live",
+      },
+      "Type": "AWS::Lambda::Alias",
+    },
+    "DetectorSchedule6BF330E5": {
+      "Properties": {
+        "FlexibleTimeWindow": {
+          "Mode": "OFF",
+        },
+        "ScheduleExpression": "cron(12 9 * * ? *)",
+        "ScheduleExpressionTimezone": "Etc/UTC",
+        "State": "ENABLED",
+        "Target": {
+          "Arn": {
+            "Ref": "DetectorLive0E739282",
+          },
+          "Input": "{"tagKey":"DriftDetection","tagValues":["enabled"]}",
+          "RetryPolicy": {
+            "MaximumEventAgeInSeconds": 86400,
+            "MaximumRetryAttempts": 185,
+          },
+          "RoleArn": {
+            "Fn::GetAtt": [
+              "SchedulerRoleForTarget66b8dd8E059CD9",
+              "Arn",
+            ],
+          },
+        },
+      },
+      "Type": "AWS::Scheduler::Schedule",
+    },
+    "SchedulerRoleForTarget66b8dd8E059CD9": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": "123456789012",
+                  "aws:SourceArn": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":scheduler:us-east-1:123456789012:schedule-group/default",
+                      ],
+                    ],
+                  },
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "scheduler.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SchedulerRoleForTarget66b8ddDefaultPolicyC74AF327": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "DetectorLive0E739282",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SchedulerRoleForTarget66b8ddDefaultPolicyC74AF327",
+        "Roles": [
+          {
+            "Ref": "SchedulerRoleForTarget66b8dd8E059CD9",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
