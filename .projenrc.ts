@@ -9,7 +9,7 @@ const project = new ProjenCdkConstructLibrary({
   description: 'AWS CDK construct that runs CloudFormation stack drift detection every day at 09:12 UTC and publishes drifted stacks to Amazon SNS.',
   keywords: ['aws', 'cdk', 'construct', 'cloudformation', 'stack', 'drift', 'detector', 'sns'],
   peerDeps: [
-    'construct-resource-criteria@^0.1.5',
+    'resource-criteria-validator@^0.3.1',
     'lambda-failure-detector@^0.3.1',
   ],
   devDeps: [

@@ -55,7 +55,6 @@
     "aws-sdk-client-mock": "^4.1.0",
     "aws-sdk-client-mock-jest": "^4.1.0",
     "commit-and-tag-version": "^13",
-    "construct-resource-criteria": "0.1.5",
     "constructs": "10.5.1",
     "esbuild": "^0.28.2",
     "eslint": "^9",
@@ -70,15 +69,16 @@
     "jsii-rosetta": "6.0.x",
     "lambda-failure-detector": "0.3.1",
     "projen": "^0.105.1",
+    "resource-criteria-validator": "0.3.1",
     "ts-jest": "^29.4.15",
     "ts-node": "^10.9.2",
     "typescript": "6.0.x"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.232.0",
-    "construct-resource-criteria": "^0.1.5",
     "constructs": "^10.5.1",
-    "lambda-failure-detector": "^0.3.1"
+    "lambda-failure-detector": "^0.3.1",
+    "resource-criteria-validator": "^0.3.1"
   },
   "keywords": [
     "aws",

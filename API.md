@@ -1219,7 +1219,7 @@ const cloudFormationStackDriftDetectorProps: CloudFormationStackDriftDetectorPro
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.retentionPeriod">retentionPeriod</a></code> | <code>aws-cdk-lib.Duration</code> | How long durable execution history is retained after completion. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.schedule">schedule</a></code> | <code>aws-cdk-lib.aws_scheduler.ScheduleExpression</code> | Cron schedule that starts a detection run. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.scheduleState">scheduleState</a></code> | <code><a href="#cloudformation-stack-drift-detector.DetectionScheduleState">DetectionScheduleState</a></code> | Whether the EventBridge Scheduler schedule is enabled. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.targetResource">targetResource</a></code> | <code>construct-resource-criteria.ConstructResourceTagCriteria</code> | Tag criteria used to select target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.targetResource">targetResource</a></code> | <code>resource-criteria-validator.ConstructResourceTagCriteria</code> | Tag criteria used to select target stacks. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.waitInterval">waitInterval</a></code> | <code>aws-cdk-lib.Duration</code> | Seconds between drift detection status checks after the first check. |
 
 ---
@@ -1357,7 +1357,7 @@ Whether the EventBridge Scheduler schedule is enabled.
 public readonly targetResource: ConstructResourceTagCriteria;
 ```
 
-- *Type:* construct-resource-criteria.ConstructResourceTagCriteria
+- *Type:* resource-criteria-validator.ConstructResourceTagCriteria
 
 Tag criteria used to select target stacks.
 
@@ -1410,7 +1410,7 @@ const cloudFormationStackDriftDetectorStackProps: CloudFormationStackDriftDetect
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.retentionPeriod">retentionPeriod</a></code> | <code>aws-cdk-lib.Duration</code> | How long durable execution history is retained after completion. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.schedule">schedule</a></code> | <code>aws-cdk-lib.aws_scheduler.ScheduleExpression</code> | Cron schedule that starts a detection run. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.scheduleState">scheduleState</a></code> | <code><a href="#cloudformation-stack-drift-detector.DetectionScheduleState">DetectionScheduleState</a></code> | Whether the EventBridge Scheduler schedule is enabled. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.targetResource">targetResource</a></code> | <code>construct-resource-criteria.ConstructResourceTagCriteria</code> | Tag criteria used to select target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.targetResource">targetResource</a></code> | <code>resource-criteria-validator.ConstructResourceTagCriteria</code> | Tag criteria used to select target stacks. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.waitInterval">waitInterval</a></code> | <code>aws-cdk-lib.Duration</code> | Seconds between drift detection status checks after the first check. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.analyticsReporting">analyticsReporting</a></code> | <code>boolean</code> | Include runtime versioning information in this Stack. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.crossRegionReferences">crossRegionReferences</a></code> | <code>boolean</code> | Enable this flag to allow native cross region stack references. |
@@ -1560,7 +1560,7 @@ Whether the EventBridge Scheduler schedule is enabled.
 public readonly targetResource: ConstructResourceTagCriteria;
 ```
 
-- *Type:* construct-resource-criteria.ConstructResourceTagCriteria
+- *Type:* resource-criteria-validator.ConstructResourceTagCriteria
 
 Tag criteria used to select target stacks.
 

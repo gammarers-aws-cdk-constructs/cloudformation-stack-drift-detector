@@ -93,7 +93,7 @@ app.synth();
 
 Deploy checklist:
 
-1. Install this package and its peers (`aws-cdk-lib`, `constructs`, `construct-resource-criteria`, `lambda-failure-detector`) in your CDK app.
+1. Install this package and its peers (`aws-cdk-lib`, `constructs`, `resource-criteria-validator`, `lambda-failure-detector`) in your CDK app.
 2. The example creates the notification topic. Detection covers the stable stacks in that account and region. No extra secret is required.
 3. From the CDK app: `npx cdk deploy TopicStack DetectorStack`
 
@@ -295,7 +295,7 @@ See [API.md](./API.md).
 - Node.js `>= 20.0.0`
 - `aws-cdk-lib` `^2.232.0`
 - `constructs` `^10.5.1`
-- `construct-resource-criteria` `^0.1.5`
+- `resource-criteria-validator` `^0.3.1`
 - `lambda-failure-detector` `^0.3.1`
 
 ## Troubleshooting

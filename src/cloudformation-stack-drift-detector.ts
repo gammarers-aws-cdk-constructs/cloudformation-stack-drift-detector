@@ -6,9 +6,9 @@ import { FilterPattern, LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Schedule, ScheduleExpression, ScheduleTargetInput } from 'aws-cdk-lib/aws-scheduler';
 import { LambdaInvoke } from 'aws-cdk-lib/aws-scheduler-targets';
 import { type ITopic } from 'aws-cdk-lib/aws-sns';
-import { ConstructResourceCriteria, ConstructResourceTagCriteria as TargetResource } from 'construct-resource-criteria';
 import { Construct } from 'constructs';
 import { LambdaFailureDetector, type LogFailureFilter } from 'lambda-failure-detector';
+import { ConstructResourceTagCriteria as TargetResource, ResourceCriteriaValidator } from 'resource-criteria-validator';
 import { DetectorFunction } from './funcs/detector-function';
 import {
   DEFAULT_DETECTION_WAIT_INTERVAL_SECONDS,
@@ -258,7 +258,7 @@ export class CloudFormationStackDriftDetector extends Construct {
     super(scope, id);
 
     if (props.targetResource) {
-      ConstructResourceCriteria.assertTagCriteria(props.targetResource, {
+      ResourceCriteriaValidator.assertTagCriteria(props.targetResource, {
         propPath: 'props.targetResource',
       });
     }
