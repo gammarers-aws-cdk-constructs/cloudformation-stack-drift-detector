@@ -113,7 +113,7 @@ const expectHistoryIdentifiesStack = (execution: TestResult, stackName: string):
 interface SdkClientLimits {
   readonly config: {
     readonly maxAttempts: number | (() => Promise<number>);
-    readonly requestHandler: NodeHttpHandler | (() => Promise<NodeHttpHandler>);
+    readonly requestHandler: unknown;
   };
 }
 
@@ -124,11 +124,11 @@ const expectClientLimits = async (client: SdkClientLimits): Promise<void> => {
 
   const requestHandlerValue = client.config.requestHandler;
   const requestHandler = typeof requestHandlerValue === 'function'
-    ? await requestHandlerValue()
+    ? await (requestHandlerValue as () => Promise<unknown>)()
     : requestHandlerValue;
   expect(requestHandler).toBeInstanceOf(NodeHttpHandler);
-  // The handler fills its public config on the first request. The timeouts are already on the provider.
-  const handlerConfig = await (requestHandler as NodeHttpHandler & {
+  // httpHandlerConfigs() stays empty until the first request. The timeouts are on the private provider.
+  const handlerConfig = await (requestHandler as unknown as {
     configProvider: Promise<{ connectionTimeout?: number; requestTimeout?: number }>;
   }).configProvider;
   expect(handlerConfig.connectionTimeout).toBe(5_000);
@@ -664,7 +664,11 @@ describe('processDriftDetection', () => {
 
   it('ignores stack summaries that have no name', async () => {
     cloudFormationMock.on(ListStacksCommand).resolves({
-      StackSummaries: [{ CreationTime: STACK_DATE, StackStatus: 'CREATE_COMPLETE' }],
+      StackSummaries: [{
+        CreationTime: STACK_DATE,
+        StackStatus: 'CREATE_COMPLETE',
+        StackName: undefined,
+      }],
     });
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
