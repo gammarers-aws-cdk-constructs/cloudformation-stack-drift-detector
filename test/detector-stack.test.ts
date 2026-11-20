@@ -1,7 +1,11 @@
-import { App, Duration, Stack } from 'aws-cdk-lib';
+import { App, Duration, Stack, TimeZone } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
+import { ScheduleExpression } from 'aws-cdk-lib/aws-scheduler';
 import * as sns from 'aws-cdk-lib/aws-sns';
-import { CloudFormationStackDriftDetectorStack, ReadOnlyAccessGrant } from '../src';
+import {
+  CloudFormationStackDriftDetectorStack,
+  DetectionScheduleState,
+} from '../src';
 
 const TEST_ENV = {
   account: '123456789012',
@@ -20,7 +24,6 @@ describe('CloudFormationStackDriftDetectorStack', () => {
       waitInterval: Duration.seconds(45),
       maxStatusChecks: 10,
       maxConcurrency: 8,
-      grantReadOnlyAccess: ReadOnlyAccessGrant.ENABLED,
       targetResource: {
         tagKey: 'DriftDetection',
         tagValues: ['enabled'],
@@ -41,13 +44,12 @@ describe('CloudFormationStackDriftDetectorStack', () => {
         }),
       }),
     }));
-    template.hasResourceProperties('AWS::Events::Rule', Match.objectLike({
-      ScheduleExpression: 'rate(1 day)',
-      Targets: Match.arrayWith([
-        Match.objectLike({
-          Input: '{"tagKey":"DriftDetection","tagValues":["enabled"]}',
-        }),
-      ]),
+    template.hasResourceProperties('AWS::Scheduler::Schedule', Match.objectLike({
+      ScheduleExpression: 'cron(12 9 * * ? *)',
+      ScheduleExpressionTimezone: 'Etc/UTC',
+      Target: Match.objectLike({
+        Input: '{"tagKey":"DriftDetection","tagValues":["enabled"]}',
+      }),
     }));
     template.hasResourceProperties('AWS::IAM::Role', Match.objectLike({
       ManagedPolicyArns: Match.arrayWith([
@@ -63,5 +65,29 @@ describe('CloudFormationStackDriftDetectorStack', () => {
         },
       ]),
     }));
+  });
+
+  it('forwards the schedule', () => {
+    const app = new App();
+    const topicStack = new Stack(app, 'TopicStack', { env: TEST_ENV });
+    const topic = new sns.Topic(topicStack, 'Notifications');
+    const stack = new CloudFormationStackDriftDetectorStack(app, 'DetectorStack', {
+      env: TEST_ENV,
+      notificationTopic: topic,
+      schedule: ScheduleExpression.cron({
+        minute: '0',
+        hour: '9',
+        weekDay: 'MON',
+        timeZone: TimeZone.ASIA_TOKYO,
+      }),
+      scheduleState: DetectionScheduleState.DISABLED,
+    });
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties('AWS::Scheduler::Schedule', {
+      ScheduleExpression: 'cron(0 9 ? * MON *)',
+      ScheduleExpressionTimezone: 'Asia/Tokyo',
+      State: 'DISABLED',
+    });
   });
 });

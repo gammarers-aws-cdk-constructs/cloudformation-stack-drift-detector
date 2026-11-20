@@ -1,9 +1,8 @@
 import { App, Duration, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import * as kms from 'aws-cdk-lib/aws-kms';
 import * as sns from 'aws-cdk-lib/aws-sns';
-import { CloudFormationStackDriftDetector, ReadOnlyAccessGrant } from '../src';
+import { CloudFormationStackDriftDetector } from '../src';
 
 const NOTIFICATION_TOPIC_ARN = 'arn:aws:sns:us-east-1:123456789012:existing-topic';
 
@@ -108,52 +107,24 @@ describe('CloudFormationStackDriftDetector', () => {
       });
     });
 
-    it('should have a live alias', () => {
+    it('should schedule daily detection at 09:12 UTC with an empty tag filter', () => {
+      template.hasResourceProperties('AWS::Scheduler::Schedule', {
+        ScheduleExpression: 'cron(12 9 * * ? *)',
+        ScheduleExpressionTimezone: 'Etc/UTC',
+        State: 'ENABLED',
+        FlexibleTimeWindow: { Mode: 'OFF' },
+        Target: Match.objectLike({
+          Arn: { Ref: Match.stringLikeRegexp('Live') },
+          Input: '{}',
+        }),
+      });
       template.hasResourceProperties('AWS::Lambda::Alias', {
         Name: 'live',
       });
+      template.resourceCountIs('AWS::Scheduler::Schedule', 1);
+      template.resourceCountIs('AWS::Events::Rule', 0);
+      template.resourceCountIs('AWS::Lambda::Alias', 1);
     });
-
-    it('should schedule daily detection with an empty tag filter', () => {
-      template.hasResourceProperties('AWS::Events::Rule', Match.objectLike({
-        ScheduleExpression: 'rate(1 day)',
-        State: 'ENABLED',
-        Targets: Match.arrayWith([
-          Match.objectLike({
-            Input: '{}',
-          }),
-        ]),
-      }));
-      template.resourceCountIs('AWS::Events::Rule', 1);
-    });
-
-    it('should not attach ReadOnlyAccess by default', () => {
-      const roles = template.findResources('AWS::IAM::Role');
-      for (const role of Object.values(roles)) {
-        const managedPolicyArns = JSON.stringify(role.Properties?.ManagedPolicyArns ?? []);
-        expect(managedPolicyArns).not.toContain('ReadOnlyAccess');
-      }
-    });
-  });
-
-  describe('role', () => {
-    it('should expose the detector Lambda role', () => {
-      const stack = createTestStack();
-      const detector = new CloudFormationStackDriftDetector(stack, 'Detector', {
-        notificationTopic: getNotificationTopic(stack),
-      });
-
-      expect(detector.role).toBeDefined();
-    });
-  });
-
-  describe('with grantReadOnlyAccess', () => {
-    const stack = createTestStack();
-    new CloudFormationStackDriftDetector(stack, 'Detector', {
-      notificationTopic: getNotificationTopic(stack),
-      grantReadOnlyAccess: ReadOnlyAccessGrant.ENABLED,
-    });
-    const template = Template.fromStack(stack);
 
     it('should attach the AWS managed ReadOnlyAccess policy', () => {
       template.hasResourceProperties('AWS::IAM::Role', Match.objectLike({
@@ -170,40 +141,6 @@ describe('CloudFormationStackDriftDetector', () => {
           },
         ]),
       }));
-    });
-  });
-
-  describe('with additional policy statements', () => {
-    const stack = createTestStack();
-    new CloudFormationStackDriftDetector(stack, 'Detector', {
-      notificationTopic: getNotificationTopic(stack),
-      additionalPolicyStatements: [
-        new iam.PolicyStatement({
-          actions: [
-            's3:GetBucketLocation',
-            'ec2:DescribeInstances',
-          ],
-          resources: ['*'],
-        }),
-      ],
-    });
-    const template = Template.fromStack(stack);
-
-    it('should attach caller-provided statements to the detector role', () => {
-      template.hasResourceProperties('AWS::IAM::Policy', {
-        PolicyDocument: {
-          Version: '2012-10-17',
-          Statement: Match.arrayWith([
-            Match.objectLike({
-              Action: [
-                's3:GetBucketLocation',
-                'ec2:DescribeInstances',
-              ],
-              Resource: '*',
-            }),
-          ]),
-        },
-      });
     });
   });
 
@@ -258,12 +195,10 @@ describe('CloudFormationStackDriftDetector', () => {
     const template = Template.fromStack(stack);
 
     it('should pass tag key and values to the detector', () => {
-      template.hasResourceProperties('AWS::Events::Rule', Match.objectLike({
-        Targets: Match.arrayWith([
-          Match.objectLike({
-            Input: '{"tagKey":"DriftDetection","tagValues":["enabled"]}',
-          }),
-        ]),
+      template.hasResourceProperties('AWS::Scheduler::Schedule', Match.objectLike({
+        Target: Match.objectLike({
+          Input: '{"tagKey":"DriftDetection","tagValues":["enabled"]}',
+        }),
       }));
     });
   });

@@ -1,10 +1,10 @@
-import { ArnFormat, Duration, Stack } from 'aws-cdk-lib';
-import * as events from 'aws-cdk-lib/aws-events';
-import * as targets from 'aws-cdk-lib/aws-events-targets';
-import * as iam from 'aws-cdk-lib/aws-iam';
-import * as kms from 'aws-cdk-lib/aws-kms';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as sns from 'aws-cdk-lib/aws-sns';
+import { ArnFormat, Duration, Stack, TimeZone } from 'aws-cdk-lib';
+import { ManagedPolicy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { type IKey } from 'aws-cdk-lib/aws-kms';
+import { Alias } from 'aws-cdk-lib/aws-lambda';
+import { Schedule, ScheduleExpression, ScheduleTargetInput } from 'aws-cdk-lib/aws-scheduler';
+import { LambdaInvoke } from 'aws-cdk-lib/aws-scheduler-targets';
+import { type ITopic } from 'aws-cdk-lib/aws-sns';
 import { ConstructResourceCriteria, ConstructResourceTagCriteria as TargetResource } from 'construct-resource-criteria';
 import { Construct } from 'constructs';
 import { DetectorFunction } from './funcs/detector-function';
@@ -24,8 +24,10 @@ const DEFAULT_EXECUTION_TIMEOUT = Duration.hours(DEFAULT_EXECUTION_TIMEOUT_HOURS
 const DEFAULT_RETENTION_PERIOD = Duration.days(30);
 /** Invoke timeout for a single Lambda worker. */
 const LAMBDA_INVOKE_TIMEOUT = Duration.minutes(15);
-/** How often EventBridge starts a detection run. */
-const DETECTION_SCHEDULE_RATE = Duration.days(1);
+/** Minute field of the default daily cron. 09:12 UTC. */
+const DEFAULT_SCHEDULE_MINUTE = '12';
+/** Hour field of the default daily cron. 09:12 UTC. */
+const DEFAULT_SCHEDULE_HOUR = '9';
 
 /** AWS managed policy required for Lambda durable execution. */
 const DURABLE_EXECUTION_POLICY_NAME = 'service-role/AWSLambdaBasicDurableExecutionRolePolicy';
@@ -65,17 +67,43 @@ const assertPositiveInteger = (value: number, fieldName: string): void => {
 };
 
 /**
- * Whether the detector role receives the AWS managed ReadOnlyAccess policy.
+ * Uses the caller schedule when one is set, otherwise 09:12 UTC every day.
+ * A provided schedule replaces the default, including its time zone.
+ *
+ * @param schedule - Caller cron expression, or undefined for the default.
+ * @returns The schedule to create.
+ * @throws When `schedule` is not a cron expression or does not name a time zone.
  */
-export enum ReadOnlyAccessGrant {
+const resolveSchedule = (schedule: ScheduleExpression | undefined): ScheduleExpression => {
+  const selected = schedule ?? ScheduleExpression.cron({
+    minute: DEFAULT_SCHEDULE_MINUTE,
+    hour: DEFAULT_SCHEDULE_HOUR,
+    timeZone: TimeZone.ETC_UTC,
+  });
+  if (!selected.expressionString.startsWith('cron(')) {
+    throw new Error('schedule must be a cron expression');
+  }
+
+  const timeZoneName = selected.timeZone ? selected.timeZone.timezoneName.trim() : '';
+  if (timeZoneName === '') {
+    throw new Error('schedule must name a time zone');
+  }
+
+  return selected;
+};
+
+/**
+ * Whether the detector EventBridge Scheduler schedule is enabled.
+ */
+export enum DetectionScheduleState {
   /**
-   * Do not attach AWS managed ReadOnlyAccess.
-   */
-  DISABLED = 'DISABLED',
-  /**
-   * Attach AWS managed ReadOnlyAccess so DetectStackDrift can describe resources.
+   * EventBridge Scheduler runs the detector on the schedule.
    */
   ENABLED = 'ENABLED',
+  /**
+   * EventBridge Scheduler does not run the detector.
+   */
+  DISABLED = 'DISABLED',
 }
 
 /**
@@ -85,7 +113,7 @@ export interface CloudFormationStackDriftDetectorProps {
   /**
    * SNS topic that receives drift and failure notifications.
    */
-  readonly notificationTopic: sns.ITopic;
+  readonly notificationTopic: ITopic;
   /**
    * Customer-managed KMS key that encrypts {@link CloudFormationStackDriftDetectorProps.notificationTopic}.
    *
@@ -94,7 +122,7 @@ export interface CloudFormationStackDriftDetectorProps {
    *
    * @default - no extra KMS grant; relies on `grantPublish` when the topic exposes a key
    */
-  readonly notificationTopicKey?: kms.IKey;
+  readonly notificationTopicKey?: IKey;
   /**
    * Tag criteria used to select target stacks.
    * When set, {@link TargetResource.tagKey} must be non-blank and
@@ -138,25 +166,27 @@ export interface CloudFormationStackDriftDetectorProps {
    */
   readonly retentionPeriod?: Duration;
   /**
-   * Extra IAM statements attached to the detector Lambda role.
-   * Use this to grant Describe/Get permissions for resources in target stacks
-   * (for example `s3:GetBucket*` or `ec2:Describe*`).
+   * Cron schedule that starts a detection run.
+   * When set, this expression replaces the default, including its time zone.
+   * Rate expressions are rejected.
    *
-   * @default - no extra inline statements
+   * @default 09:12 UTC every day (`cron(12 9 * * ? *)`)
    */
-  readonly additionalPolicyStatements?: iam.PolicyStatement[];
+  readonly schedule?: ScheduleExpression;
   /**
-   * Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift
-   * can describe resources in target stacks.
+   * Whether the EventBridge Scheduler schedule is enabled.
    *
-   * @default {@link ReadOnlyAccessGrant.DISABLED}
+   * @default {@link DetectionScheduleState.ENABLED}
    */
-  readonly grantReadOnlyAccess?: ReadOnlyAccessGrant;
+  readonly scheduleState?: DetectionScheduleState;
 }
 
 /**
- * CDK construct that runs CloudFormation stack drift detection daily and publishes
- * drifted stacks to SNS.
+ * CDK construct that runs CloudFormation stack drift detection on an EventBridge Scheduler
+ * cron and publishes drifted stacks to SNS.
+ * The default schedule is 09:12 UTC every day. Pass `schedule` to replace it.
+ * The detector role includes the AWS managed ReadOnlyAccess policy so
+ * DetectStackDrift can read resource configuration.
  *
  * Target stacks are selected by {@link TargetResource} when provided.
  * Tagged stacks are still limited to stable statuses. When the filter is omitted,
@@ -164,23 +194,11 @@ export interface CloudFormationStackDriftDetectorProps {
  */
 export class CloudFormationStackDriftDetector extends Construct {
   /**
-   * SNS topic that receives drift and failure notifications.
-   */
-  readonly notificationTopic: sns.ITopic;
-
-  /**
-   * IAM role used by the detector Lambda.
-   * Attach extra Describe/Get permissions for resources in target stacks when
-   * {@link CloudFormationStackDriftDetectorProps.grantReadOnlyAccess} is not enough.
-   */
-  readonly role: iam.IRole;
-
-  /**
-   * Creates the durable detector Lambda, IAM policies, and daily EventBridge rule.
+   * Creates the durable detector Lambda, IAM policies, and EventBridge Scheduler schedule.
    *
    * @param scope - Parent construct.
    * @param id - Construct id.
-   * @param props - Notification topic, IAM grants, optional tag filter, and durable execution settings.
+   * @param props - Notification topic, optional tag filter, and durable execution settings.
    */
   constructor(scope: Construct, id: string, props: CloudFormationStackDriftDetectorProps) {
     super(scope, id);
@@ -198,11 +216,9 @@ export class CloudFormationStackDriftDetector extends Construct {
     assertPositiveInteger(maxStatusChecks, 'maxStatusChecks');
     assertPositiveInteger(maxConcurrency, 'maxConcurrency');
 
-    this.notificationTopic = props.notificationTopic;
-
     const durableFunction = new DetectorFunction(this, 'Function', {
       environment: {
-        NOTIFICATION_TOPIC_ARN: this.notificationTopic.topicArn,
+        NOTIFICATION_TOPIC_ARN: props.notificationTopic.topicArn,
         [DETECTION_WAIT_INTERVAL_SECONDS_ENV]: String(waitIntervalSeconds),
         [DETECTION_MAX_STATUS_CHECKS_ENV]: String(maxStatusChecks),
         [STACK_DETECTION_MAX_CONCURRENCY_ENV]: String(maxConcurrency),
@@ -217,22 +233,19 @@ export class CloudFormationStackDriftDetector extends Construct {
     if (!durableFunction.role) {
       throw new Error('Detector Lambda must have an IAM role');
     }
-    this.role = durableFunction.role;
+    const role = durableFunction.role;
 
-    this.role.addManagedPolicy(
-      iam.ManagedPolicy.fromAwsManagedPolicyName(DURABLE_EXECUTION_POLICY_NAME),
+    role.addManagedPolicy(
+      ManagedPolicy.fromAwsManagedPolicyName(DURABLE_EXECUTION_POLICY_NAME),
     );
-
-    if (props.grantReadOnlyAccess === ReadOnlyAccessGrant.ENABLED) {
-      this.role.addManagedPolicy(
-        iam.ManagedPolicy.fromAwsManagedPolicyName(READ_ONLY_ACCESS_POLICY_NAME),
-      );
-    }
+    role.addManagedPolicy(
+      ManagedPolicy.fromAwsManagedPolicyName(READ_ONLY_ACCESS_POLICY_NAME),
+    );
 
     // DetectStackDrift internally calls DetectStackResourceDrift and, for registry
     // types, BatchDescribeTypeConfigurations. Missing these actions yields
     // DETECTION_FAILED or NOT_CHECKED even when DetectStackDrift itself is allowed.
-    durableFunction.addToRolePolicy(new iam.PolicyStatement({
+    durableFunction.addToRolePolicy(new PolicyStatement({
       actions: [
         'cloudformation:DetectStackDrift',
         'cloudformation:DetectStackResourceDrift',
@@ -241,7 +254,7 @@ export class CloudFormationStackDriftDetector extends Construct {
       resources: this.getStackArns(),
     }));
 
-    durableFunction.addToRolePolicy(new iam.PolicyStatement({
+    durableFunction.addToRolePolicy(new PolicyStatement({
       actions: [
         'cloudformation:DescribeStackDriftDetectionStatus',
         'cloudformation:ListStacks',
@@ -250,32 +263,29 @@ export class CloudFormationStackDriftDetector extends Construct {
       resources: ['*'],
     }));
 
-    durableFunction.addToRolePolicy(new iam.PolicyStatement({
+    durableFunction.addToRolePolicy(new PolicyStatement({
       actions: [
         'tag:GetResources',
       ],
       resources: ['*'],
     }));
 
-    for (const statement of props.additionalPolicyStatements ?? []) {
-      durableFunction.addToRolePolicy(statement);
-    }
-
-    this.notificationTopic.grantPublish(durableFunction);
+    props.notificationTopic.grantPublish(durableFunction);
     props.notificationTopicKey?.grantEncryptDecrypt(durableFunction);
 
-    const alias = new lambda.Alias(this, 'Live', {
+    // Durable execution accepts a published alias as its invoke target.
+    const live = new Alias(this, 'Live', {
       aliasName: 'live',
       version: durableFunction.currentVersion,
     });
 
-    new events.Rule(this, 'Schedule', {
-      schedule: events.Schedule.rate(DETECTION_SCHEDULE_RATE),
-      targets: [
-        new targets.LambdaFunction(alias, {
-          event: events.RuleTargetInput.fromObject(this.getEventInput(props.targetResource)),
-        }),
-      ],
+    const scheduleState = props.scheduleState ?? DetectionScheduleState.ENABLED;
+    new Schedule(this, 'Schedule', {
+      schedule: resolveSchedule(props.schedule),
+      enabled: scheduleState === DetectionScheduleState.ENABLED,
+      target: new LambdaInvoke(live, {
+        input: ScheduleTargetInput.fromObject(this.getEventInput(props.targetResource)),
+      }),
     });
   }
 
@@ -297,7 +307,7 @@ export class CloudFormationStackDriftDetector extends Construct {
   }
 
   /**
-   * Builds the EventBridge target payload passed to the detector Lambda.
+   * Builds the Scheduler target payload passed to the detector Lambda.
    *
    * @param targetResource - Optional tag criteria. When omitted, an empty payload selects all stable stacks.
    * @returns Tag key and values for the Lambda event, or an empty object.

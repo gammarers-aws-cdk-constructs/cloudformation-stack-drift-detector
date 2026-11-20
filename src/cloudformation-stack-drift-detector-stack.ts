@@ -33,8 +33,8 @@ export class CloudFormationStackDriftDetectorStack extends Stack {
       maxStatusChecks: props.maxStatusChecks,
       maxConcurrency: props.maxConcurrency,
       retentionPeriod: props.retentionPeriod,
-      additionalPolicyStatements: props.additionalPolicyStatements,
-      grantReadOnlyAccess: props.grantReadOnlyAccess,
+      schedule: props.schedule,
+      scheduleState: props.scheduleState,
     });
   }
 }

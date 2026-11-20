@@ -1,6 +1,6 @@
 {
   "name": "cloudformation-stack-drift-detector",
-  "description": "AWS CDK construct that runs CloudFormation stack drift detection on a daily schedule and publishes drifted stacks to Amazon SNS.",
+  "description": "AWS CDK construct that runs CloudFormation stack drift detection every day at 09:12 UTC and publishes drifted stacks to Amazon SNS.",
   "repository": {
     "type": "git",
     "url": "https://github.com/gammarers-aws-cdk-constructs/cloudformation-stack-drift-detector.git"

@@ -6,7 +6,7 @@ const project = new ProjenCdkConstructLibrary({
   npmTrustedPublishing: true,
   name: 'cloudformation-stack-drift-detector',
   repositoryUrl: 'https://github.com/gammarers-aws-cdk-constructs/cloudformation-stack-drift-detector.git',
-  description: 'AWS CDK construct that runs CloudFormation stack drift detection on a daily schedule and publishes drifted stacks to Amazon SNS.',
+  description: 'AWS CDK construct that runs CloudFormation stack drift detection every day at 09:12 UTC and publishes drifted stacks to Amazon SNS.',
   keywords: ['aws', 'cdk', 'construct', 'cloudformation', 'stack', 'drift', 'detector', 'sns'],
   peerDeps: [
     'construct-resource-criteria@^0.1.5',

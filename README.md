@@ -7,23 +7,23 @@
 
 [![View on Construct Hub](https://constructs.dev/badge?package=cloudformation-stack-drift-detector)](https://constructs.dev/packages/cloudformation-stack-drift-detector)
 
-AWS CDK construct that runs CloudFormation stack drift detection on a daily schedule and publishes drifted stacks to Amazon SNS.
+AWS CDK construct that runs CloudFormation stack drift detection every day at 09:12 UTC and publishes drifted stacks to Amazon SNS.
 
 ## Features
 
-- Daily EventBridge schedule that invokes a durable Lambda alias
+- EventBridge Scheduler cron that invokes the durable Lambda function through its published alias. The default is 09:12 UTC every day, and another cron expression replaces it
 - Optional tag-based selection of stable stacks, or inspect all stable stacks in the account and region
 - SNS notifications when a stack is `DRIFTED`, including modified and deleted resource drifts
 - Per-stack failure isolation: a failed stack is published to the same SNS topic and the remaining stacks are still inspected. If any stack fails, the invocation throws after the run and names the failed stacks
 - Caller-provided SNS topic (the construct does not create a topic)
 - Configurable status-check interval, per-stack check limit, concurrency, durable execution timeout, and history retention
-- Optional resource read grants so DetectStackDrift can describe resources in target stacks
+- AWS managed `ReadOnlyAccess` on the detector role so DetectStackDrift can describe resources in target stacks
 - Optional KMS key grant when publishing to an encrypted SNS topic
 - `CloudFormationStackDriftDetectorStack`, a stack that deploys the detector
 
 ## How it works
 
-A daily EventBridge rule invokes the detector Lambda `live` alias. The function selects stable CloudFormation stacks by tag, or every stable stack in the account and region when no tag is set. Stacks outside `CREATE_COMPLETE`, `UPDATE_COMPLETE`, `UPDATE_ROLLBACK_COMPLETE`, `IMPORT_COMPLETE`, and `IMPORT_ROLLBACK_COMPLETE` are skipped, including stacks that are creating, updating, or deleting. DetectStackDrift does not run for a skipped stack, and no notification is published for it.
+An EventBridge Scheduler schedule invokes the detector Lambda through its published `live` alias. Durable execution uses that alias as the invoke target. The default is `cron(12 9 * * ? *)` at 09:12 UTC, and the schedule is enabled. Pass `schedule` to replace that cron, including its time zone. Pass `scheduleState` to disable the schedule. The function selects stable CloudFormation stacks by tag, or every stable stack in the account and region when no tag is set. Stacks outside `CREATE_COMPLETE`, `UPDATE_COMPLETE`, `UPDATE_ROLLBACK_COMPLETE`, `IMPORT_COMPLETE`, and `IMPORT_ROLLBACK_COMPLETE` are skipped, including stacks that are creating, updating, or deleting. DetectStackDrift does not run for a skipped stack, and no notification is published for it.
 
 The function runs DetectStackDrift on the selected stacks, up to `maxConcurrency` stacks at a time. For each stack it reads the detection status immediately, then waits `waitInterval` between later checks while the status is `DETECTION_IN_PROGRESS`, and stops that stack after `maxStatusChecks` checks. Drifted stacks publish modified and deleted resource details to the caller-provided SNS topic. If detection fails for one stack, the function publishes a failure notification to the same topic and continues with the remaining stacks. When any stack fails, the invocation throws after the run and names the failed stacks. A run where every stack succeeds returns succeeded and failed counts, with failed equal to 0.
 
@@ -37,7 +37,7 @@ The function runs DetectStackDrift on the selected stacks, up to `maxConcurrency
 | Durable execution timeout | 12 hours | `executionTimeout` |
 | Durable history retention | 30 days | `retentionPeriod` |
 
-DetectStackDrift also reads the live configuration of resources in those stacks. Grant those Describe/Get permissions through `grantReadOnlyAccess`, `additionalPolicyStatements`, or the public `role`.
+The detector role includes the AWS managed `ReadOnlyAccess` policy. DetectStackDrift uses it to read the live configuration of resources in those stacks.
 
 ## Installation
 
@@ -127,35 +127,25 @@ new CloudFormationStackDriftDetector(this, 'Detector', {
 });
 ```
 
-### Grant resource read permissions for drift detection
+### Replace the schedule
 
-DetectStackDrift also needs Describe/Get on resources inside the target stacks. Without those permissions, detection often finishes as `DETECTION_FAILED` or `NOT_CHECKED`. Attach AWS managed `ReadOnlyAccess`, pass least-privilege statements, or grant on the exposed role:
+The default runs every day at 09:12 UTC. Pass `schedule` to replace that expression and its time zone. Rate expressions are rejected.
 
 ```typescript
-import { ReadOnlyAccessGrant } from 'cloudformation-stack-drift-detector';
+import { TimeZone } from 'aws-cdk-lib';
+import { ScheduleExpression } from 'aws-cdk-lib/aws-scheduler';
+import { DetectionScheduleState } from 'cloudformation-stack-drift-detector';
 
 new CloudFormationStackDriftDetector(this, 'Detector', {
   notificationTopic: topic,
-  grantReadOnlyAccess: ReadOnlyAccessGrant.ENABLED,
+  schedule: ScheduleExpression.cron({
+    minute: '0',
+    hour: '9',
+    weekDay: 'MON',
+    timeZone: TimeZone.ASIA_TOKYO,
+  }),
+  scheduleState: DetectionScheduleState.ENABLED,
 });
-```
-
-```typescript
-import * as iam from 'aws-cdk-lib/aws-iam';
-
-const detector = new CloudFormationStackDriftDetector(this, 'Detector', {
-  notificationTopic: topic,
-  additionalPolicyStatements: [
-    new iam.PolicyStatement({
-      actions: ['s3:GetBucket*', 'ec2:Describe*'],
-      resources: ['*'],
-    }),
-  ],
-});
-
-detector.role.addManagedPolicy(
-  iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess'),
-);
 ```
 
 ### Publish to a KMS-encrypted imported SNS topic
@@ -215,15 +205,15 @@ These options apply to `CloudFormationStackDriftDetector` and `CloudFormationSta
 | `maxStatusChecks` | `number` | No | Maximum status checks for one stack, including the first. The stack fails if detection is still `DETECTION_IN_PROGRESS` after this many checks (default: `20`). |
 | `maxConcurrency` | `number` | No | Maximum number of stacks detected at the same time (default: `5`). |
 | `retentionPeriod` | `Duration` | No | How long durable execution history is retained after completion (default: `Duration.days(30)`). |
-| `additionalPolicyStatements` | `iam.PolicyStatement[]` | No | Extra IAM statements attached to the detector Lambda role (for example resource Describe/Get). |
-| `grantReadOnlyAccess` | `ReadOnlyAccessGrant` | No | Attach AWS managed `ReadOnlyAccess` when set to `ReadOnlyAccessGrant.ENABLED` (default: `ReadOnlyAccessGrant.DISABLED`). |
+| `schedule` | `ScheduleExpression` | No | Cron that replaces the default, including its time zone. Rate expressions are rejected (default: 09:12 UTC every day, `cron(12 9 * * ? *)`). |
+| `scheduleState` | `DetectionScheduleState` | No | Whether the EventBridge Scheduler schedule is enabled (default: `DetectionScheduleState.ENABLED`). |
 
-### ReadOnlyAccessGrant
+### DetectionScheduleState
 
 | Value | Description |
 |-------|-------------|
-| `ENABLED` | Attach AWS managed `ReadOnlyAccess`. |
-| `DISABLED` | Do not attach `ReadOnlyAccess`. |
+| `ENABLED` | EventBridge Scheduler runs the detector on the schedule. |
+| `DISABLED` | EventBridge Scheduler does not run the detector. |
 
 ### TargetResource
 
