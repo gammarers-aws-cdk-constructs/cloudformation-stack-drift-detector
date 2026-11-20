@@ -1,13 +1,13 @@
 import { App, Duration, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
-import * as kms from 'aws-cdk-lib/aws-kms';
-import * as sns from 'aws-cdk-lib/aws-sns';
+import { Key } from 'aws-cdk-lib/aws-kms';
+import { Topic, type ITopic } from 'aws-cdk-lib/aws-sns';
 import { CloudFormationStackDriftDetector } from '../src';
 
 const NOTIFICATION_TOPIC_ARN = 'arn:aws:sns:us-east-1:123456789012:existing-topic';
 
-const getNotificationTopic = (stack: Stack): sns.ITopic => {
-  return sns.Topic.fromTopicArn(stack, 'NotificationTopic', NOTIFICATION_TOPIC_ARN);
+const getNotificationTopic = (stack: Stack): ITopic => {
+  return Topic.fromTopicArn(stack, 'NotificationTopic', NOTIFICATION_TOPIC_ARN);
 };
 
 const createTestStack = (): Stack => {
@@ -150,7 +150,7 @@ describe('default', () => {
 
 describe('with notification topic key', () => {
   const stack = createTestStack();
-  const topicKey = new kms.Key(stack, 'TopicKey');
+  const topicKey = new Key(stack, 'TopicKey');
   new CloudFormationStackDriftDetector(stack, 'Detector', {
     notificationTopic: getNotificationTopic(stack),
     notificationTopicKey: topicKey,

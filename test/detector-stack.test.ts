@@ -1,7 +1,7 @@
 import { App, Duration, Stack, TimeZone } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import { ScheduleExpression } from 'aws-cdk-lib/aws-scheduler';
-import * as sns from 'aws-cdk-lib/aws-sns';
+import { Topic } from 'aws-cdk-lib/aws-sns';
 import {
   CloudFormationStackDriftDetectorStack,
   DetectionScheduleState,
@@ -16,7 +16,7 @@ describe('CloudFormationStackDriftDetectorStack', () => {
   it('deploys the detector and forwards construct props', () => {
     const app = new App();
     const topicStack = new Stack(app, 'TopicStack', { env: TEST_ENV });
-    const topic = new sns.Topic(topicStack, 'Notifications');
+    const topic = new Topic(topicStack, 'Notifications');
     const stack = new CloudFormationStackDriftDetectorStack(app, 'DetectorStack', {
       env: TEST_ENV,
       notificationTopic: topic,
@@ -70,7 +70,7 @@ describe('CloudFormationStackDriftDetectorStack', () => {
   it('forwards the schedule', () => {
     const app = new App();
     const topicStack = new Stack(app, 'TopicStack', { env: TEST_ENV });
-    const topic = new sns.Topic(topicStack, 'Notifications');
+    const topic = new Topic(topicStack, 'Notifications');
     const stack = new CloudFormationStackDriftDetectorStack(app, 'DetectorStack', {
       env: TEST_ENV,
       notificationTopic: topic,
@@ -94,7 +94,7 @@ describe('CloudFormationStackDriftDetectorStack', () => {
   it('forwards failure detection', () => {
     const app = new App();
     const topicStack = new Stack(app, 'TopicStack', { env: TEST_ENV });
-    const topic = new sns.Topic(topicStack, 'Notifications');
+    const topic = new Topic(topicStack, 'Notifications');
     const stack = new CloudFormationStackDriftDetectorStack(app, 'DetectorStack', {
       env: TEST_ENV,
       notificationTopic: topic,

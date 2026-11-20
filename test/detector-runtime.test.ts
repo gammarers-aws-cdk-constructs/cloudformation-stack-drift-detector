@@ -1,5 +1,5 @@
 import { App, Duration, Stack } from 'aws-cdk-lib';
-import * as sns from 'aws-cdk-lib/aws-sns';
+import { Topic } from 'aws-cdk-lib/aws-sns';
 import { CloudFormationStackDriftDetector } from '../src';
 
 const NOTIFICATION_TOPIC_ARN = 'arn:aws:sns:us-east-1:123456789012:existing-topic';
@@ -48,7 +48,7 @@ describe('CloudFormationStackDriftDetector runtime limits', () => {
     },
   ])('rejects $label', ({ props, message }) => {
     const stack = createTestStack();
-    const topic = sns.Topic.fromTopicArn(stack, 'NotificationTopic', NOTIFICATION_TOPIC_ARN);
+    const topic = Topic.fromTopicArn(stack, 'NotificationTopic', NOTIFICATION_TOPIC_ARN);
 
     expect(() => {
       new CloudFormationStackDriftDetector(stack, 'Detector', {

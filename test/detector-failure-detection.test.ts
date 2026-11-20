@@ -1,6 +1,6 @@
 import { App, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
-import * as sns from 'aws-cdk-lib/aws-sns';
+import { Topic } from 'aws-cdk-lib/aws-sns';
 import { CloudFormationStackDriftDetector } from '../src';
 
 const NOTIFICATION_TOPIC_ARN = 'arn:aws:sns:us-east-1:123456789012:existing-topic';
@@ -18,9 +18,9 @@ const createStack = (): Stack => {
 describe('CloudFormationStackDriftDetector failure detection', () => {
   it('creates a retained log group and a log alarm when enabled', () => {
     const stack = createStack();
-    const alarmTopic = new sns.Topic(stack, 'AlarmTopic');
+    const alarmTopic = new Topic(stack, 'AlarmTopic');
     new CloudFormationStackDriftDetector(stack, 'Detector', {
-      notificationTopic: sns.Topic.fromTopicArn(stack, 'NotificationTopic', NOTIFICATION_TOPIC_ARN),
+      notificationTopic: Topic.fromTopicArn(stack, 'NotificationTopic', NOTIFICATION_TOPIC_ARN),
       failureDetection: {
         enabled: true,
         alarm: {
@@ -55,7 +55,7 @@ describe('CloudFormationStackDriftDetector failure detection', () => {
   it('leaves alarms without an SNS action when no alarm topic is set', () => {
     const stack = createStack();
     new CloudFormationStackDriftDetector(stack, 'Detector', {
-      notificationTopic: sns.Topic.fromTopicArn(stack, 'NotificationTopic', NOTIFICATION_TOPIC_ARN),
+      notificationTopic: Topic.fromTopicArn(stack, 'NotificationTopic', NOTIFICATION_TOPIC_ARN),
       failureDetection: {
         enabled: true,
       },

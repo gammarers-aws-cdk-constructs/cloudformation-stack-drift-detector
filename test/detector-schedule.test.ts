@@ -1,7 +1,7 @@
 import { App, Duration, Stack, TimeZone } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import { ScheduleExpression } from 'aws-cdk-lib/aws-scheduler';
-import * as sns from 'aws-cdk-lib/aws-sns';
+import { Topic } from 'aws-cdk-lib/aws-sns';
 import { CloudFormationStackDriftDetector, DetectionScheduleState } from '../src';
 
 const NOTIFICATION_TOPIC_ARN = 'arn:aws:sns:us-east-1:123456789012:existing-topic';
@@ -20,7 +20,7 @@ describe('CloudFormationStackDriftDetector schedule', () => {
   it('replaces the default cron when a schedule is provided', () => {
     const stack = createTestStack();
     new CloudFormationStackDriftDetector(stack, 'Detector', {
-      notificationTopic: sns.Topic.fromTopicArn(stack, 'NotificationTopic', NOTIFICATION_TOPIC_ARN),
+      notificationTopic: Topic.fromTopicArn(stack, 'NotificationTopic', NOTIFICATION_TOPIC_ARN),
       schedule: ScheduleExpression.cron({
         minute: '0',
         hour: '9',
@@ -67,7 +67,7 @@ describe('CloudFormationStackDriftDetector schedule', () => {
 
     expect(() => {
       new CloudFormationStackDriftDetector(stack, 'Detector', {
-        notificationTopic: sns.Topic.fromTopicArn(stack, 'NotificationTopic', NOTIFICATION_TOPIC_ARN),
+        notificationTopic: Topic.fromTopicArn(stack, 'NotificationTopic', NOTIFICATION_TOPIC_ARN),
         schedule,
       });
     }).toThrow(message);
