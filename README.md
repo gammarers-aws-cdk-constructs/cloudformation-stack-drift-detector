@@ -231,6 +231,7 @@ See [API.md](./API.md).
 - Node.js `>= 20.0.0`
 - `aws-cdk-lib` `^2.232.0`
 - `constructs` `^10.5.1`
+- `construct-resource-criteria` `^0.1.5`
 
 ## Troubleshooting
 

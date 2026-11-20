@@ -14,6 +14,7 @@ import {
   ResourceGroupsTaggingAPIClient,
 } from '@aws-sdk/client-resource-groups-tagging-api';
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
+import { NodeHttpHandler } from '@smithy/node-http-handler';
 import {
   DEFAULT_DETECTION_WAIT_INTERVAL_SECONDS,
   DEFAULT_MAX_CONCURRENCY,
@@ -53,6 +54,12 @@ const RESOURCE_DRIFT_STATUS_FILTERS: StackResourceDriftStatus[] = [
   StackResourceDriftStatus.MODIFIED,
   StackResourceDriftStatus.DELETED,
 ];
+/** TCP connection timeout for one AWS SDK HTTP request. */
+const AWS_SDK_CONNECTION_TIMEOUT_MS = 5_000;
+/** Time limit for one AWS SDK HTTP request, including the response body. */
+const AWS_SDK_REQUEST_TIMEOUT_MS = 30_000;
+/** Total send attempts for one AWS SDK call, including the first attempt. */
+const AWS_SDK_MAX_ATTEMPTS = 3;
 /** Stack statuses that are eligible for drift detection. */
 const STABLE_STACK_STATUSES = [
   StackStatus.CREATE_COMPLETE,
@@ -62,12 +69,28 @@ const STABLE_STACK_STATUSES = [
   StackStatus.IMPORT_ROLLBACK_COMPLETE,
 ];
 
+/**
+ * Builds retry and HTTP timeout settings for one AWS SDK client.
+ * Each call creates its own request handler.
+ *
+ * @returns Client options with 3 attempts, a 5 second connection timeout, and a 30 second request timeout.
+ */
+const createAwsSdkClientConfig = () => {
+  return {
+    maxAttempts: AWS_SDK_MAX_ATTEMPTS,
+    requestHandler: new NodeHttpHandler({
+      connectionTimeout: AWS_SDK_CONNECTION_TIMEOUT_MS,
+      requestTimeout: AWS_SDK_REQUEST_TIMEOUT_MS,
+    }),
+  };
+};
+
 /** Shared CloudFormation client for drift detection APIs. */
-const cloudFormation = new CloudFormationClient({});
+const cloudFormation = new CloudFormationClient(createAwsSdkClientConfig());
 /** Shared tagging client used to resolve stacks by tag. */
-const resourceGroupsTagging = new ResourceGroupsTaggingAPIClient({});
+const resourceGroupsTagging = new ResourceGroupsTaggingAPIClient(createAwsSdkClientConfig());
 /** Shared SNS client used to publish drift notifications. */
-const sns = new SNSClient({});
+const sns = new SNSClient(createAwsSdkClientConfig());
 
 /**
  * EventBridge input that selects stacks for drift detection.
