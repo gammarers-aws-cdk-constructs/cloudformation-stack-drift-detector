@@ -16,13 +16,23 @@
       "type": "build"
     },
     {
+      "name": "@aws/durable-execution-sdk-js-testing",
+      "version": "^1.4.0",
+      "type": "build"
+    },
+    {
       "name": "@aws/durable-execution-sdk-js",
-      "version": "^2.3.0",
+      "version": "^3.1.0",
       "type": "build"
     },
     {
       "name": "@gammarers/projen-projects",
-      "version": "^0.6.2",
+      "version": "^0.8.1",
+      "type": "build"
+    },
+    {
+      "name": "@smithy/node-http-handler",
+      "version": "^4.14.2",
       "type": "build"
     },
     {
@@ -136,13 +146,18 @@
       "type": "peer"
     },
     {
-      "name": "construct-resource-criteria",
-      "version": "^0.1.5",
+      "name": "constructs",
+      "version": "^10.5.1",
       "type": "peer"
     },
     {
-      "name": "constructs",
-      "version": "^10.5.1",
+      "name": "lambda-failure-detector",
+      "version": "^0.3.1",
+      "type": "peer"
+    },
+    {
+      "name": "resource-criteria-validator",
+      "version": "^0.3.1",
       "type": "peer"
     }
   ],

@@ -365,7 +365,10 @@
             "--passWithNoTests",
             "--updateSnapshot"
           ],
-          "receiveArgs": true
+          "receiveArgs": true,
+          "env": {
+            "NODE_OPTIONS": "--experimental-vm-modules"
+          }
         },
         {
           "spawn": "eslint"
@@ -380,7 +383,10 @@
           "execArgs": [
             "jest",
             "--watch"
-          ]
+          ],
+          "env": {
+            "NODE_OPTIONS": "--experimental-vm-modules"
+          }
         }
       ]
     },
@@ -430,8 +436,10 @@
             "@aws-sdk/client-cloudformation",
             "@aws-sdk/client-resource-groups-tagging-api",
             "@aws-sdk/client-sns",
+            "@aws/durable-execution-sdk-js-testing",
             "@aws/durable-execution-sdk-js",
             "@gammarers/projen-projects",
+            "@smithy/node-http-handler",
             "@stylistic/eslint-plugin",
             "@types/jest",
             "@types/node",
@@ -456,8 +464,9 @@
             "ts-node",
             "typescript",
             "aws-cdk-lib",
-            "construct-resource-criteria",
-            "constructs"
+            "constructs",
+            "lambda-failure-detector",
+            "resource-criteria-validator"
           ]
         },
         {

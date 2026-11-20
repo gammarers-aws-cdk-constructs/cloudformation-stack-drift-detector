@@ -29,9 +29,13 @@ export class CloudFormationStackDriftDetectorStack extends Stack {
       notificationTopicKey: props.notificationTopicKey,
       targetResource: props.targetResource,
       executionTimeout: props.executionTimeout,
+      waitInterval: props.waitInterval,
+      maxStatusChecks: props.maxStatusChecks,
+      maxConcurrency: props.maxConcurrency,
       retentionPeriod: props.retentionPeriod,
-      additionalPolicyStatements: props.additionalPolicyStatements,
-      grantReadOnlyAccess: props.grantReadOnlyAccess,
+      schedule: props.schedule,
+      scheduleState: props.scheduleState,
+      failureDetection: props.failureDetection,
     });
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "cloudformation-stack-drift-detector",
-  "description": "AWS CDK construct that runs CloudFormation stack drift detection on a daily schedule and publishes drifted stacks to Amazon SNS.",
+  "description": "AWS CDK construct that runs CloudFormation stack drift detection every day at 09:12 UTC and publishes drifted stacks to Amazon SNS.",
   "repository": {
     "type": "git",
     "url": "https://github.com/gammarers-aws-cdk-constructs/cloudformation-stack-drift-detector.git"
@@ -42,8 +42,10 @@
     "@aws-sdk/client-cloudformation": "^3.1116.0",
     "@aws-sdk/client-resource-groups-tagging-api": "^3.1116.0",
     "@aws-sdk/client-sns": "^3.1116.0",
-    "@aws/durable-execution-sdk-js": "^2.3.0",
-    "@gammarers/projen-projects": "^0.6.2",
+    "@aws/durable-execution-sdk-js": "^3.1.0",
+    "@aws/durable-execution-sdk-js-testing": "^1.4.0",
+    "@gammarers/projen-projects": "^0.8.1",
+    "@smithy/node-http-handler": "^4.14.2",
     "@stylistic/eslint-plugin": "^2",
     "@types/jest": "^30.0.0",
     "@types/node": "^20",
@@ -53,7 +55,6 @@
     "aws-sdk-client-mock": "^4.1.0",
     "aws-sdk-client-mock-jest": "^4.1.0",
     "commit-and-tag-version": "^13",
-    "construct-resource-criteria": "0.1.5",
     "constructs": "10.5.1",
     "esbuild": "^0.28.2",
     "eslint": "^9",
@@ -66,15 +67,18 @@
     "jsii-docgen": "^10.5.0",
     "jsii-pacmak": "^1.142.0",
     "jsii-rosetta": "6.0.x",
+    "lambda-failure-detector": "0.3.1",
     "projen": "^0.105.1",
+    "resource-criteria-validator": "0.3.1",
     "ts-jest": "^29.4.15",
     "ts-node": "^10.9.2",
     "typescript": "6.0.x"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.232.0",
-    "construct-resource-criteria": "^0.1.5",
-    "constructs": "^10.5.1"
+    "constructs": "^10.5.1",
+    "lambda-failure-detector": "^0.3.1",
+    "resource-criteria-validator": "^0.3.1"
   },
   "keywords": [
     "aws",

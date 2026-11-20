@@ -4,7 +4,11 @@
 
 ### CloudFormationStackDriftDetector <a name="CloudFormationStackDriftDetector" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetector"></a>
 
-CDK construct that runs CloudFormation stack drift detection daily and publishes drifted stacks to SNS.
+CDK construct that runs CloudFormation stack drift detection on an EventBridge Scheduler cron and publishes drifted stacks to SNS.
+
+The default schedule is 09:12 UTC every day. Pass `schedule` to replace it.
+The detector role includes the AWS managed ReadOnlyAccess policy so
+DetectStackDrift can read resource configuration.
 
 Target stacks are selected by {@link TargetResource} when provided.
 Tagged stacks are still limited to stable statuses. When the filter is omitted,
@@ -22,7 +26,7 @@ new CloudFormationStackDriftDetector(scope: Construct, id: string, props: CloudF
 | --- | --- | --- |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.Initializer.parameter.scope">scope</a></code> | <code>constructs.Construct</code> | - Parent construct. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.Initializer.parameter.id">id</a></code> | <code>string</code> | - Construct id. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.Initializer.parameter.props">props</a></code> | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps">CloudFormationStackDriftDetectorProps</a></code> | - Notification topic, IAM grants, optional tag filter, and durable execution settings. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.Initializer.parameter.props">props</a></code> | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps">CloudFormationStackDriftDetectorProps</a></code> | - Notification topic, optional tag filter, and durable execution settings. |
 
 ---
 
@@ -46,7 +50,7 @@ Construct id.
 
 - *Type:* <a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps">CloudFormationStackDriftDetectorProps</a>
 
-Notification topic, IAM grants, optional tag filter, and durable execution settings.
+Notification topic, optional tag filter, and durable execution settings.
 
 ---
 
@@ -133,8 +137,6 @@ Any object.
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic that receives drift and failure notifications. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.property.role">role</a></code> | <code>aws-cdk-lib.aws_iam.IRole</code> | IAM role used by the detector Lambda. |
 
 ---
 
@@ -147,33 +149,6 @@ public readonly node: Node;
 - *Type:* constructs.Node
 
 The tree node.
-
----
-
-##### `notificationTopic`<sup>Required</sup> <a name="notificationTopic" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.property.notificationTopic"></a>
-
-```typescript
-public readonly notificationTopic: ITopic;
-```
-
-- *Type:* aws-cdk-lib.aws_sns.ITopic
-
-SNS topic that receives drift and failure notifications.
-
----
-
-##### `role`<sup>Required</sup> <a name="role" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetector.property.role"></a>
-
-```typescript
-public readonly role: IRole;
-```
-
-- *Type:* aws-cdk-lib.aws_iam.IRole
-
-IAM role used by the detector Lambda.
-
-Attach extra Describe/Get permissions for resources in target stacks when
-{@link CloudFormationStackDriftDetectorProps.grantReadOnlyAccess} is not enough.
 
 ---
 
@@ -1137,6 +1112,88 @@ Whether termination protection is enabled for this stack.
 
 ## Structs <a name="Structs" id="Structs"></a>
 
+### CloudFormationStackDriftDetectorFailureAlarmProps <a name="CloudFormationStackDriftDetectorFailureAlarmProps" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureAlarmProps"></a>
+
+Where failure alarms send notifications.
+
+#### Initializer <a name="Initializer" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureAlarmProps.Initializer"></a>
+
+```typescript
+import { CloudFormationStackDriftDetectorFailureAlarmProps } from 'cloudformation-stack-drift-detector'
+
+const cloudFormationStackDriftDetectorFailureAlarmProps: CloudFormationStackDriftDetectorFailureAlarmProps = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureAlarmProps.property.topic">topic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | Existing SNS topic that receives alarm notifications. |
+
+---
+
+##### `topic`<sup>Optional</sup> <a name="topic" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureAlarmProps.property.topic"></a>
+
+```typescript
+public readonly topic: ITopic;
+```
+
+- *Type:* aws-cdk-lib.aws_sns.ITopic
+
+Existing SNS topic that receives alarm notifications.
+
+When omitted, the alarms have no SNS action.
+
+---
+
+### CloudFormationStackDriftDetectorFailureDetectionProps <a name="CloudFormationStackDriftDetectorFailureDetectionProps" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps"></a>
+
+Opt-in CloudWatch alarms for detector failures.
+
+Alarms are created only when {@link CloudFormationStackDriftDetectorFailureDetectionProps.enabled} is true.
+
+#### Initializer <a name="Initializer" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps.Initializer"></a>
+
+```typescript
+import { CloudFormationStackDriftDetectorFailureDetectionProps } from 'cloudformation-stack-drift-detector'
+
+const cloudFormationStackDriftDetectorFailureDetectionProps: CloudFormationStackDriftDetectorFailureDetectionProps = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps.property.alarm">alarm</a></code> | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureAlarmProps">CloudFormationStackDriftDetectorFailureAlarmProps</a></code> | Where failure alarms send notifications. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps.property.enabled">enabled</a></code> | <code>boolean</code> | Create CloudWatch alarms for platform errors and failed drift-detection runs. |
+
+---
+
+##### `alarm`<sup>Optional</sup> <a name="alarm" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps.property.alarm"></a>
+
+```typescript
+public readonly alarm: CloudFormationStackDriftDetectorFailureAlarmProps;
+```
+
+- *Type:* <a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureAlarmProps">CloudFormationStackDriftDetectorFailureAlarmProps</a>
+
+Where failure alarms send notifications.
+
+---
+
+##### `enabled`<sup>Optional</sup> <a name="enabled" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps.property.enabled"></a>
+
+```typescript
+public readonly enabled: boolean;
+```
+
+- *Type:* boolean
+- *Default:* false
+
+Create CloudWatch alarms for platform errors and failed drift-detection runs.
+
+---
+
 ### CloudFormationStackDriftDetectorProps <a name="CloudFormationStackDriftDetectorProps" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps"></a>
 
 Properties for {@link CloudFormationStackDriftDetector}.
@@ -1154,12 +1211,16 @@ const cloudFormationStackDriftDetectorProps: CloudFormationStackDriftDetectorPro
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic that receives drift and failure notifications. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.additionalPolicyStatements">additionalPolicyStatements</a></code> | <code>aws-cdk-lib.aws_iam.PolicyStatement[]</code> | Extra IAM statements attached to the detector Lambda role. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.executionTimeout">executionTimeout</a></code> | <code>aws-cdk-lib.Duration</code> | Maximum duration of a durable execution. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.grantReadOnlyAccess">grantReadOnlyAccess</a></code> | <code><a href="#cloudformation-stack-drift-detector.ReadOnlyAccessGrant">ReadOnlyAccessGrant</a></code> | Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.failureDetection">failureDetection</a></code> | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps">CloudFormationStackDriftDetectorFailureDetectionProps</a></code> | CloudWatch alarms for detector failures. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.maxConcurrency">maxConcurrency</a></code> | <code>number</code> | Maximum number of stacks detected at the same time. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.maxStatusChecks">maxStatusChecks</a></code> | <code>number</code> | Maximum DescribeStackDriftDetectionStatus calls for one stack, including the first check. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.notificationTopicKey">notificationTopicKey</a></code> | <code>aws-cdk-lib.aws_kms.IKey</code> | Customer-managed KMS key that encrypts {@link CloudFormationStackDriftDetectorProps.notificationTopic}. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.retentionPeriod">retentionPeriod</a></code> | <code>aws-cdk-lib.Duration</code> | How long durable execution history is retained after completion. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.targetResource">targetResource</a></code> | <code>construct-resource-criteria.ConstructResourceTagCriteria</code> | Tag criteria used to select target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.schedule">schedule</a></code> | <code>aws-cdk-lib.aws_scheduler.ScheduleExpression</code> | Cron schedule that starts a detection run. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.scheduleState">scheduleState</a></code> | <code><a href="#cloudformation-stack-drift-detector.DetectionScheduleState">DetectionScheduleState</a></code> | Whether the EventBridge Scheduler schedule is enabled. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.targetResource">targetResource</a></code> | <code>resource-criteria-validator.ConstructResourceTagCriteria</code> | Tag criteria used to select target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.waitInterval">waitInterval</a></code> | <code>aws-cdk-lib.Duration</code> | Seconds between drift detection status checks after the first check. |
 
 ---
 
@@ -1175,22 +1236,6 @@ SNS topic that receives drift and failure notifications.
 
 ---
 
-##### `additionalPolicyStatements`<sup>Optional</sup> <a name="additionalPolicyStatements" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.additionalPolicyStatements"></a>
-
-```typescript
-public readonly additionalPolicyStatements: PolicyStatement[];
-```
-
-- *Type:* aws-cdk-lib.aws_iam.PolicyStatement[]
-- *Default:* no extra inline statements
-
-Extra IAM statements attached to the detector Lambda role.
-
-Use this to grant Describe/Get permissions for resources in target stacks
-(for example `s3:GetBucket*` or `ec2:Describe*`).
-
----
-
 ##### `executionTimeout`<sup>Optional</sup> <a name="executionTimeout" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.executionTimeout"></a>
 
 ```typescript
@@ -1198,22 +1243,53 @@ public readonly executionTimeout: Duration;
 ```
 
 - *Type:* aws-cdk-lib.Duration
-- *Default:* Duration.hours(1)
+- *Default:* Duration.hours(12)
 
 Maximum duration of a durable execution.
 
 ---
 
-##### `grantReadOnlyAccess`<sup>Optional</sup> <a name="grantReadOnlyAccess" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.grantReadOnlyAccess"></a>
+##### `failureDetection`<sup>Optional</sup> <a name="failureDetection" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.failureDetection"></a>
 
 ```typescript
-public readonly grantReadOnlyAccess: ReadOnlyAccessGrant;
+public readonly failureDetection: CloudFormationStackDriftDetectorFailureDetectionProps;
 ```
 
-- *Type:* <a href="#cloudformation-stack-drift-detector.ReadOnlyAccessGrant">ReadOnlyAccessGrant</a>
-- *Default:* {@link ReadOnlyAccessGrant.DISABLED }
+- *Type:* <a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps">CloudFormationStackDriftDetectorFailureDetectionProps</a>
+- *Default:* failure alarms are off
 
-Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks.
+CloudWatch alarms for detector failures.
+
+Alarms and the detector log group are created only when
+{@link CloudFormationStackDriftDetectorFailureDetectionProps.enabled} is true.
+
+---
+
+##### `maxConcurrency`<sup>Optional</sup> <a name="maxConcurrency" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.maxConcurrency"></a>
+
+```typescript
+public readonly maxConcurrency: number;
+```
+
+- *Type:* number
+- *Default:* 5
+
+Maximum number of stacks detected at the same time.
+
+---
+
+##### `maxStatusChecks`<sup>Optional</sup> <a name="maxStatusChecks" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.maxStatusChecks"></a>
+
+```typescript
+public readonly maxStatusChecks: number;
+```
+
+- *Type:* number
+- *Default:* 20
+
+Maximum DescribeStackDriftDetectionStatus calls for one stack, including the first check.
+
+The stack fails when detection is still `DETECTION_IN_PROGRESS` after this many checks.
 
 ---
 
@@ -1246,13 +1322,42 @@ How long durable execution history is retained after completion.
 
 ---
 
+##### `schedule`<sup>Optional</sup> <a name="schedule" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.schedule"></a>
+
+```typescript
+public readonly schedule: ScheduleExpression;
+```
+
+- *Type:* aws-cdk-lib.aws_scheduler.ScheduleExpression
+- *Default:* 09:12 UTC every day (`cron(12 9 * * ? *)`)
+
+Cron schedule that starts a detection run.
+
+When set, this expression replaces the default, including its time zone.
+Rate expressions are rejected.
+
+---
+
+##### `scheduleState`<sup>Optional</sup> <a name="scheduleState" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.scheduleState"></a>
+
+```typescript
+public readonly scheduleState: DetectionScheduleState;
+```
+
+- *Type:* <a href="#cloudformation-stack-drift-detector.DetectionScheduleState">DetectionScheduleState</a>
+- *Default:* {@link DetectionScheduleState.ENABLED }
+
+Whether the EventBridge Scheduler schedule is enabled.
+
+---
+
 ##### `targetResource`<sup>Optional</sup> <a name="targetResource" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.targetResource"></a>
 
 ```typescript
 public readonly targetResource: ConstructResourceTagCriteria;
 ```
 
-- *Type:* construct-resource-criteria.ConstructResourceTagCriteria
+- *Type:* resource-criteria-validator.ConstructResourceTagCriteria
 
 Tag criteria used to select target stacks.
 
@@ -1262,6 +1367,21 @@ Tagged stacks are limited to stable statuses: `CREATE_COMPLETE`,
 `UPDATE_COMPLETE`, `UPDATE_ROLLBACK_COMPLETE`, `IMPORT_COMPLETE`, and
 `IMPORT_ROLLBACK_COMPLETE`.
 If omitted, every stable stack in the account and region is inspected.
+
+---
+
+##### `waitInterval`<sup>Optional</sup> <a name="waitInterval" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.waitInterval"></a>
+
+```typescript
+public readonly waitInterval: Duration;
+```
+
+- *Type:* aws-cdk-lib.Duration
+- *Default:* Duration.seconds(30)
+
+Seconds between drift detection status checks after the first check.
+
+The first check runs immediately.
 
 ---
 
@@ -1282,12 +1402,16 @@ const cloudFormationStackDriftDetectorStackProps: CloudFormationStackDriftDetect
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic that receives drift and failure notifications. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.additionalPolicyStatements">additionalPolicyStatements</a></code> | <code>aws-cdk-lib.aws_iam.PolicyStatement[]</code> | Extra IAM statements attached to the detector Lambda role. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.executionTimeout">executionTimeout</a></code> | <code>aws-cdk-lib.Duration</code> | Maximum duration of a durable execution. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.grantReadOnlyAccess">grantReadOnlyAccess</a></code> | <code><a href="#cloudformation-stack-drift-detector.ReadOnlyAccessGrant">ReadOnlyAccessGrant</a></code> | Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.failureDetection">failureDetection</a></code> | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps">CloudFormationStackDriftDetectorFailureDetectionProps</a></code> | CloudWatch alarms for detector failures. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.maxConcurrency">maxConcurrency</a></code> | <code>number</code> | Maximum number of stacks detected at the same time. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.maxStatusChecks">maxStatusChecks</a></code> | <code>number</code> | Maximum DescribeStackDriftDetectionStatus calls for one stack, including the first check. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.notificationTopicKey">notificationTopicKey</a></code> | <code>aws-cdk-lib.aws_kms.IKey</code> | Customer-managed KMS key that encrypts {@link CloudFormationStackDriftDetectorProps.notificationTopic}. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.retentionPeriod">retentionPeriod</a></code> | <code>aws-cdk-lib.Duration</code> | How long durable execution history is retained after completion. |
-| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.targetResource">targetResource</a></code> | <code>construct-resource-criteria.ConstructResourceTagCriteria</code> | Tag criteria used to select target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.schedule">schedule</a></code> | <code>aws-cdk-lib.aws_scheduler.ScheduleExpression</code> | Cron schedule that starts a detection run. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.scheduleState">scheduleState</a></code> | <code><a href="#cloudformation-stack-drift-detector.DetectionScheduleState">DetectionScheduleState</a></code> | Whether the EventBridge Scheduler schedule is enabled. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.targetResource">targetResource</a></code> | <code>resource-criteria-validator.ConstructResourceTagCriteria</code> | Tag criteria used to select target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.waitInterval">waitInterval</a></code> | <code>aws-cdk-lib.Duration</code> | Seconds between drift detection status checks after the first check. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.analyticsReporting">analyticsReporting</a></code> | <code>boolean</code> | Include runtime versioning information in this Stack. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.crossRegionReferences">crossRegionReferences</a></code> | <code>boolean</code> | Enable this flag to allow native cross region stack references. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.description">description</a></code> | <code>string</code> | A description of the stack. |
@@ -1315,22 +1439,6 @@ SNS topic that receives drift and failure notifications.
 
 ---
 
-##### `additionalPolicyStatements`<sup>Optional</sup> <a name="additionalPolicyStatements" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.additionalPolicyStatements"></a>
-
-```typescript
-public readonly additionalPolicyStatements: PolicyStatement[];
-```
-
-- *Type:* aws-cdk-lib.aws_iam.PolicyStatement[]
-- *Default:* no extra inline statements
-
-Extra IAM statements attached to the detector Lambda role.
-
-Use this to grant Describe/Get permissions for resources in target stacks
-(for example `s3:GetBucket*` or `ec2:Describe*`).
-
----
-
 ##### `executionTimeout`<sup>Optional</sup> <a name="executionTimeout" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.executionTimeout"></a>
 
 ```typescript
@@ -1338,22 +1446,53 @@ public readonly executionTimeout: Duration;
 ```
 
 - *Type:* aws-cdk-lib.Duration
-- *Default:* Duration.hours(1)
+- *Default:* Duration.hours(12)
 
 Maximum duration of a durable execution.
 
 ---
 
-##### `grantReadOnlyAccess`<sup>Optional</sup> <a name="grantReadOnlyAccess" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.grantReadOnlyAccess"></a>
+##### `failureDetection`<sup>Optional</sup> <a name="failureDetection" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.failureDetection"></a>
 
 ```typescript
-public readonly grantReadOnlyAccess: ReadOnlyAccessGrant;
+public readonly failureDetection: CloudFormationStackDriftDetectorFailureDetectionProps;
 ```
 
-- *Type:* <a href="#cloudformation-stack-drift-detector.ReadOnlyAccessGrant">ReadOnlyAccessGrant</a>
-- *Default:* {@link ReadOnlyAccessGrant.DISABLED }
+- *Type:* <a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps">CloudFormationStackDriftDetectorFailureDetectionProps</a>
+- *Default:* failure alarms are off
 
-Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks.
+CloudWatch alarms for detector failures.
+
+Alarms and the detector log group are created only when
+{@link CloudFormationStackDriftDetectorFailureDetectionProps.enabled} is true.
+
+---
+
+##### `maxConcurrency`<sup>Optional</sup> <a name="maxConcurrency" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.maxConcurrency"></a>
+
+```typescript
+public readonly maxConcurrency: number;
+```
+
+- *Type:* number
+- *Default:* 5
+
+Maximum number of stacks detected at the same time.
+
+---
+
+##### `maxStatusChecks`<sup>Optional</sup> <a name="maxStatusChecks" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.maxStatusChecks"></a>
+
+```typescript
+public readonly maxStatusChecks: number;
+```
+
+- *Type:* number
+- *Default:* 20
+
+Maximum DescribeStackDriftDetectionStatus calls for one stack, including the first check.
+
+The stack fails when detection is still `DETECTION_IN_PROGRESS` after this many checks.
 
 ---
 
@@ -1386,13 +1525,42 @@ How long durable execution history is retained after completion.
 
 ---
 
+##### `schedule`<sup>Optional</sup> <a name="schedule" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.schedule"></a>
+
+```typescript
+public readonly schedule: ScheduleExpression;
+```
+
+- *Type:* aws-cdk-lib.aws_scheduler.ScheduleExpression
+- *Default:* 09:12 UTC every day (`cron(12 9 * * ? *)`)
+
+Cron schedule that starts a detection run.
+
+When set, this expression replaces the default, including its time zone.
+Rate expressions are rejected.
+
+---
+
+##### `scheduleState`<sup>Optional</sup> <a name="scheduleState" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.scheduleState"></a>
+
+```typescript
+public readonly scheduleState: DetectionScheduleState;
+```
+
+- *Type:* <a href="#cloudformation-stack-drift-detector.DetectionScheduleState">DetectionScheduleState</a>
+- *Default:* {@link DetectionScheduleState.ENABLED }
+
+Whether the EventBridge Scheduler schedule is enabled.
+
+---
+
 ##### `targetResource`<sup>Optional</sup> <a name="targetResource" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.targetResource"></a>
 
 ```typescript
 public readonly targetResource: ConstructResourceTagCriteria;
 ```
 
-- *Type:* construct-resource-criteria.ConstructResourceTagCriteria
+- *Type:* resource-criteria-validator.ConstructResourceTagCriteria
 
 Tag criteria used to select target stacks.
 
@@ -1402,6 +1570,21 @@ Tagged stacks are limited to stable statuses: `CREATE_COMPLETE`,
 `UPDATE_COMPLETE`, `UPDATE_ROLLBACK_COMPLETE`, `IMPORT_COMPLETE`, and
 `IMPORT_ROLLBACK_COMPLETE`.
 If omitted, every stable stack in the account and region is inspected.
+
+---
+
+##### `waitInterval`<sup>Optional</sup> <a name="waitInterval" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.waitInterval"></a>
+
+```typescript
+public readonly waitInterval: Duration;
+```
+
+- *Type:* aws-cdk-lib.Duration
+- *Default:* Duration.seconds(30)
+
+Seconds between drift detection status checks after the first check.
+
+The first check runs immediately.
 
 ---
 
@@ -1653,29 +1836,29 @@ Whether to enable termination protection for this stack.
 
 ## Enums <a name="Enums" id="Enums"></a>
 
-### ReadOnlyAccessGrant <a name="ReadOnlyAccessGrant" id="cloudformation-stack-drift-detector.ReadOnlyAccessGrant"></a>
+### DetectionScheduleState <a name="DetectionScheduleState" id="cloudformation-stack-drift-detector.DetectionScheduleState"></a>
 
-Whether the detector role receives the AWS managed ReadOnlyAccess policy.
+Whether the detector EventBridge Scheduler schedule is enabled.
 
 #### Members <a name="Members" id="Members"></a>
 
 | **Name** | **Description** |
 | --- | --- |
-| <code><a href="#cloudformation-stack-drift-detector.ReadOnlyAccessGrant.DISABLED">DISABLED</a></code> | Do not attach AWS managed ReadOnlyAccess. |
-| <code><a href="#cloudformation-stack-drift-detector.ReadOnlyAccessGrant.ENABLED">ENABLED</a></code> | Attach AWS managed ReadOnlyAccess so DetectStackDrift can describe resources. |
+| <code><a href="#cloudformation-stack-drift-detector.DetectionScheduleState.ENABLED">ENABLED</a></code> | EventBridge Scheduler runs the detector on the schedule. |
+| <code><a href="#cloudformation-stack-drift-detector.DetectionScheduleState.DISABLED">DISABLED</a></code> | EventBridge Scheduler does not run the detector. |
 
 ---
 
-##### `DISABLED` <a name="DISABLED" id="cloudformation-stack-drift-detector.ReadOnlyAccessGrant.DISABLED"></a>
+##### `ENABLED` <a name="ENABLED" id="cloudformation-stack-drift-detector.DetectionScheduleState.ENABLED"></a>
 
-Do not attach AWS managed ReadOnlyAccess.
+EventBridge Scheduler runs the detector on the schedule.
 
 ---
 
 
-##### `ENABLED` <a name="ENABLED" id="cloudformation-stack-drift-detector.ReadOnlyAccessGrant.ENABLED"></a>
+##### `DISABLED` <a name="DISABLED" id="cloudformation-stack-drift-detector.DetectionScheduleState.DISABLED"></a>
 
-Attach AWS managed ReadOnlyAccess so DetectStackDrift can describe resources.
+EventBridge Scheduler does not run the detector.
 
 ---
 
