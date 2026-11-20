@@ -11,7 +11,7 @@ AWS CDK construct that runs CloudFormation stack drift detection every day at 09
 
 ## Features
 
-- EventBridge Scheduler cron that invokes the durable Lambda function through its published alias. The default is 09:12 UTC every day, and another cron expression replaces it
+- EventBridge Scheduler cron. The default is 09:12 UTC every day, and another cron expression replaces it
 - Optional tag-based selection of stable stacks, or inspect all stable stacks in the account and region
 - SNS notifications when a stack is `DRIFTED`, including modified and deleted resource drifts
 - Per-stack failure isolation: a failed stack is published to the same SNS topic and the remaining stacks are still inspected. If any stack fails, the invocation throws after the run and names the failed stacks
@@ -61,11 +61,49 @@ pnpm add cloudformation-stack-drift-detector
 
 ## Usage
 
+### Minimal deployable app
+
+Use `CloudFormationStackDriftDetectorStack` when you want a dedicated stack you can deploy as-is. The app also creates the notification topic.
+
+```typescript
+import { App, Stack } from 'aws-cdk-lib';
+import { Topic } from 'aws-cdk-lib/aws-sns';
+import { CloudFormationStackDriftDetectorStack } from 'cloudformation-stack-drift-detector';
+
+const app = new App();
+
+const topicStack = new Stack(app, 'TopicStack', {
+  env: {
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: process.env.CDK_DEFAULT_REGION,
+  },
+});
+const topic = new Topic(topicStack, 'DriftNotifications');
+
+new CloudFormationStackDriftDetectorStack(app, 'DetectorStack', {
+  env: {
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: process.env.CDK_DEFAULT_REGION,
+  },
+  notificationTopic: topic,
+});
+
+app.synth();
+```
+
+Deploy checklist:
+
+1. Install this package and its peers (`aws-cdk-lib`, `constructs`, `construct-resource-criteria`, `lambda-failure-detector`) in your CDK app.
+2. The example creates the notification topic. Detection covers the stable stacks in that account and region. No extra secret is required.
+3. From the CDK app: `npx cdk deploy TopicStack DetectorStack`
+
+### Add the detector to an existing stack
+
 Inspect every stable CloudFormation stack in the account and region. Provide an SNS topic for drift notifications:
 
 ```typescript
 import { Stack } from 'aws-cdk-lib';
-import * as sns from 'aws-cdk-lib/aws-sns';
+import { Topic } from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
 import { CloudFormationStackDriftDetector } from 'cloudformation-stack-drift-detector';
 
@@ -73,7 +111,7 @@ export class DetectorStack extends Stack {
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
-    const topic = new sns.Topic(this, 'DriftNotifications');
+    const topic = new Topic(this, 'DriftNotifications');
 
     new CloudFormationStackDriftDetector(this, 'Detector', {
       notificationTopic: topic,
@@ -99,9 +137,9 @@ new CloudFormationStackDriftDetector(this, 'Detector', {
 ### Use an existing SNS topic
 
 ```typescript
-import * as sns from 'aws-cdk-lib/aws-sns';
+import { Topic } from 'aws-cdk-lib/aws-sns';
 
-const topic = sns.Topic.fromTopicArn(
+const topic = Topic.fromTopicArn(
   this,
   'ExistingTopic',
   'arn:aws:sns:us-east-1:123456789012:drift-notifications',
@@ -171,15 +209,15 @@ new CloudFormationStackDriftDetector(this, 'Detector', {
 When the topic is imported with `fromTopicArn`, `grantPublish` cannot see the encryption key. Pass `notificationTopicKey` so the detector can call `kms:GenerateDataKey` and `kms:Decrypt`:
 
 ```typescript
-import * as kms from 'aws-cdk-lib/aws-kms';
-import * as sns from 'aws-cdk-lib/aws-sns';
+import { Key } from 'aws-cdk-lib/aws-kms';
+import { Topic } from 'aws-cdk-lib/aws-sns';
 
-const topic = sns.Topic.fromTopicArn(
+const topic = Topic.fromTopicArn(
   this,
   'ExistingTopic',
   'arn:aws:sns:us-east-1:123456789012:drift-notifications',
 );
-const topicKey = kms.Key.fromKeyArn(
+const topicKey = Key.fromKeyArn(
   this,
   'TopicKey',
   'arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012',
@@ -197,12 +235,12 @@ new CloudFormationStackDriftDetector(this, 'Detector', {
 
 ```typescript
 import { App, Stack } from 'aws-cdk-lib';
-import * as sns from 'aws-cdk-lib/aws-sns';
+import { Topic } from 'aws-cdk-lib/aws-sns';
 import { CloudFormationStackDriftDetectorStack } from 'cloudformation-stack-drift-detector';
 
 const app = new App();
 const topicStack = new Stack(app, 'TopicStack');
-const topic = new sns.Topic(topicStack, 'DriftNotifications');
+const topic = new Topic(topicStack, 'DriftNotifications');
 
 new CloudFormationStackDriftDetectorStack(app, 'DetectorStack', {
   notificationTopic: topic,
