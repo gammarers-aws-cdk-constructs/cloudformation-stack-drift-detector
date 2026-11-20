@@ -1157,9 +1157,12 @@ const cloudFormationStackDriftDetectorProps: CloudFormationStackDriftDetectorPro
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.additionalPolicyStatements">additionalPolicyStatements</a></code> | <code>aws-cdk-lib.aws_iam.PolicyStatement[]</code> | Extra IAM statements attached to the detector Lambda role. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.executionTimeout">executionTimeout</a></code> | <code>aws-cdk-lib.Duration</code> | Maximum duration of a durable execution. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.grantReadOnlyAccess">grantReadOnlyAccess</a></code> | <code><a href="#cloudformation-stack-drift-detector.ReadOnlyAccessGrant">ReadOnlyAccessGrant</a></code> | Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.maxConcurrency">maxConcurrency</a></code> | <code>number</code> | Maximum number of stacks detected at the same time. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.maxStatusChecks">maxStatusChecks</a></code> | <code>number</code> | Maximum DescribeStackDriftDetectionStatus calls for one stack, including the first check. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.notificationTopicKey">notificationTopicKey</a></code> | <code>aws-cdk-lib.aws_kms.IKey</code> | Customer-managed KMS key that encrypts {@link CloudFormationStackDriftDetectorProps.notificationTopic}. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.retentionPeriod">retentionPeriod</a></code> | <code>aws-cdk-lib.Duration</code> | How long durable execution history is retained after completion. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.targetResource">targetResource</a></code> | <code>construct-resource-criteria.ConstructResourceTagCriteria</code> | Tag criteria used to select target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.waitInterval">waitInterval</a></code> | <code>aws-cdk-lib.Duration</code> | Seconds between drift detection status checks after the first check. |
 
 ---
 
@@ -1198,7 +1201,7 @@ public readonly executionTimeout: Duration;
 ```
 
 - *Type:* aws-cdk-lib.Duration
-- *Default:* Duration.hours(1)
+- *Default:* Duration.hours(12)
 
 Maximum duration of a durable execution.
 
@@ -1214,6 +1217,34 @@ public readonly grantReadOnlyAccess: ReadOnlyAccessGrant;
 - *Default:* {@link ReadOnlyAccessGrant.DISABLED }
 
 Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks.
+
+---
+
+##### `maxConcurrency`<sup>Optional</sup> <a name="maxConcurrency" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.maxConcurrency"></a>
+
+```typescript
+public readonly maxConcurrency: number;
+```
+
+- *Type:* number
+- *Default:* 5
+
+Maximum number of stacks detected at the same time.
+
+---
+
+##### `maxStatusChecks`<sup>Optional</sup> <a name="maxStatusChecks" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.maxStatusChecks"></a>
+
+```typescript
+public readonly maxStatusChecks: number;
+```
+
+- *Type:* number
+- *Default:* 20
+
+Maximum DescribeStackDriftDetectionStatus calls for one stack, including the first check.
+
+The stack fails when detection is still `DETECTION_IN_PROGRESS` after this many checks.
 
 ---
 
@@ -1265,6 +1296,21 @@ If omitted, every stable stack in the account and region is inspected.
 
 ---
 
+##### `waitInterval`<sup>Optional</sup> <a name="waitInterval" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.waitInterval"></a>
+
+```typescript
+public readonly waitInterval: Duration;
+```
+
+- *Type:* aws-cdk-lib.Duration
+- *Default:* Duration.seconds(30)
+
+Seconds between drift detection status checks after the first check.
+
+The first check runs immediately.
+
+---
+
 ### CloudFormationStackDriftDetectorStackProps <a name="CloudFormationStackDriftDetectorStackProps" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps"></a>
 
 Properties for {@link CloudFormationStackDriftDetectorStack}.
@@ -1285,9 +1331,12 @@ const cloudFormationStackDriftDetectorStackProps: CloudFormationStackDriftDetect
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.additionalPolicyStatements">additionalPolicyStatements</a></code> | <code>aws-cdk-lib.aws_iam.PolicyStatement[]</code> | Extra IAM statements attached to the detector Lambda role. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.executionTimeout">executionTimeout</a></code> | <code>aws-cdk-lib.Duration</code> | Maximum duration of a durable execution. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.grantReadOnlyAccess">grantReadOnlyAccess</a></code> | <code><a href="#cloudformation-stack-drift-detector.ReadOnlyAccessGrant">ReadOnlyAccessGrant</a></code> | Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.maxConcurrency">maxConcurrency</a></code> | <code>number</code> | Maximum number of stacks detected at the same time. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.maxStatusChecks">maxStatusChecks</a></code> | <code>number</code> | Maximum DescribeStackDriftDetectionStatus calls for one stack, including the first check. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.notificationTopicKey">notificationTopicKey</a></code> | <code>aws-cdk-lib.aws_kms.IKey</code> | Customer-managed KMS key that encrypts {@link CloudFormationStackDriftDetectorProps.notificationTopic}. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.retentionPeriod">retentionPeriod</a></code> | <code>aws-cdk-lib.Duration</code> | How long durable execution history is retained after completion. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.targetResource">targetResource</a></code> | <code>construct-resource-criteria.ConstructResourceTagCriteria</code> | Tag criteria used to select target stacks. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.waitInterval">waitInterval</a></code> | <code>aws-cdk-lib.Duration</code> | Seconds between drift detection status checks after the first check. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.analyticsReporting">analyticsReporting</a></code> | <code>boolean</code> | Include runtime versioning information in this Stack. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.crossRegionReferences">crossRegionReferences</a></code> | <code>boolean</code> | Enable this flag to allow native cross region stack references. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.description">description</a></code> | <code>string</code> | A description of the stack. |
@@ -1338,7 +1387,7 @@ public readonly executionTimeout: Duration;
 ```
 
 - *Type:* aws-cdk-lib.Duration
-- *Default:* Duration.hours(1)
+- *Default:* Duration.hours(12)
 
 Maximum duration of a durable execution.
 
@@ -1354,6 +1403,34 @@ public readonly grantReadOnlyAccess: ReadOnlyAccessGrant;
 - *Default:* {@link ReadOnlyAccessGrant.DISABLED }
 
 Whether to attach the AWS managed `ReadOnlyAccess` policy so DetectStackDrift can describe resources in target stacks.
+
+---
+
+##### `maxConcurrency`<sup>Optional</sup> <a name="maxConcurrency" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.maxConcurrency"></a>
+
+```typescript
+public readonly maxConcurrency: number;
+```
+
+- *Type:* number
+- *Default:* 5
+
+Maximum number of stacks detected at the same time.
+
+---
+
+##### `maxStatusChecks`<sup>Optional</sup> <a name="maxStatusChecks" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.maxStatusChecks"></a>
+
+```typescript
+public readonly maxStatusChecks: number;
+```
+
+- *Type:* number
+- *Default:* 20
+
+Maximum DescribeStackDriftDetectionStatus calls for one stack, including the first check.
+
+The stack fails when detection is still `DETECTION_IN_PROGRESS` after this many checks.
 
 ---
 
@@ -1402,6 +1479,21 @@ Tagged stacks are limited to stable statuses: `CREATE_COMPLETE`,
 `UPDATE_COMPLETE`, `UPDATE_ROLLBACK_COMPLETE`, `IMPORT_COMPLETE`, and
 `IMPORT_ROLLBACK_COMPLETE`.
 If omitted, every stable stack in the account and region is inspected.
+
+---
+
+##### `waitInterval`<sup>Optional</sup> <a name="waitInterval" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.waitInterval"></a>
+
+```typescript
+public readonly waitInterval: Duration;
+```
+
+- *Type:* aws-cdk-lib.Duration
+- *Default:* Duration.seconds(30)
+
+Seconds between drift detection status checks after the first check.
+
+The first check runs immediately.
 
 ---
 

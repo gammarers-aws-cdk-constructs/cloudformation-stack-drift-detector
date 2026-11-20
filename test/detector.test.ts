@@ -46,13 +46,16 @@ describe('CloudFormationStackDriftDetector', () => {
         Handler: 'index.handler',
         Timeout: 900,
         DurableConfig: {
-          ExecutionTimeout: 3600,
+          ExecutionTimeout: 43200,
           RetentionPeriodInDays: 30,
         },
         Environment: Match.objectLike({
           Variables: Match.objectLike({
             AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
             NOTIFICATION_TOPIC_ARN,
+            DETECTION_WAIT_INTERVAL_SECONDS: '30',
+            DETECTION_MAX_STATUS_CHECKS: '20',
+            STACK_DETECTION_MAX_CONCURRENCY: '5',
           }),
         }),
       }));

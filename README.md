@@ -14,16 +14,28 @@ AWS CDK construct that runs CloudFormation stack drift detection on a daily sche
 - Daily EventBridge schedule that invokes a durable Lambda alias
 - Optional tag-based selection of stable stacks, or inspect all stable stacks in the account and region
 - SNS notifications when a stack is `DRIFTED`, including modified and deleted resource drifts
-- Per-stack failure isolation: a failed stack is published to the same SNS topic, remaining stacks are still inspected, and the invocation returns succeeded and failed counts
+- Per-stack failure isolation: a failed stack is published to the same SNS topic and the remaining stacks are still inspected. If any stack fails, the invocation throws after the run and names the failed stacks
 - Caller-provided SNS topic (the construct does not create a topic)
-- Configurable durable execution timeout and history retention
+- Configurable status-check interval, per-stack check limit, concurrency, durable execution timeout, and history retention
 - Optional resource read grants so DetectStackDrift can describe resources in target stacks
 - Optional KMS key grant when publishing to an encrypted SNS topic
 - `CloudFormationStackDriftDetectorStack`, a stack that deploys the detector
 
 ## How it works
 
-A daily EventBridge rule invokes the detector Lambda `live` alias. The function selects stable CloudFormation stacks by tag, or every stable stack in the account and region when no tag is set. Stacks outside `CREATE_COMPLETE`, `UPDATE_COMPLETE`, `UPDATE_ROLLBACK_COMPLETE`, `IMPORT_COMPLETE`, and `IMPORT_ROLLBACK_COMPLETE` are skipped, including stacks that are creating, updating, or deleting. DetectStackDrift does not run for a skipped stack, and no notification is published for it. The function runs DetectStackDrift on each selected stack, waits until detection finishes, and publishes drifted resource details to the caller-provided SNS topic. If detection fails for one stack, the function publishes a failure notification to the same topic and continues with the remaining stacks. The invocation result reports how many stacks succeeded and how many failed.
+A daily EventBridge rule invokes the detector Lambda `live` alias. The function selects stable CloudFormation stacks by tag, or every stable stack in the account and region when no tag is set. Stacks outside `CREATE_COMPLETE`, `UPDATE_COMPLETE`, `UPDATE_ROLLBACK_COMPLETE`, `IMPORT_COMPLETE`, and `IMPORT_ROLLBACK_COMPLETE` are skipped, including stacks that are creating, updating, or deleting. DetectStackDrift does not run for a skipped stack, and no notification is published for it.
+
+The function runs DetectStackDrift on the selected stacks, up to `maxConcurrency` stacks at a time. For each stack it reads the detection status immediately, then waits `waitInterval` between later checks while the status is `DETECTION_IN_PROGRESS`, and stops that stack after `maxStatusChecks` checks. Drifted stacks publish modified and deleted resource details to the caller-provided SNS topic. If detection fails for one stack, the function publishes a failure notification to the same topic and continues with the remaining stacks. When any stack fails, the invocation throws after the run and names the failed stacks. A run where every stack succeeds returns succeeded and failed counts, with failed equal to 0.
+
+| Limit | Default | Prop |
+|-------|---------|------|
+| First status check | no wait | not configurable via props today |
+| Later status checks | every 30 seconds | `waitInterval` |
+| Status checks per stack | 20, including the first | `maxStatusChecks` |
+| Stacks detected at once | 5 | `maxConcurrency` |
+| Lambda invocation timeout | 15 minutes | not configurable via props today |
+| Durable execution timeout | 12 hours | `executionTimeout` |
+| Durable history retention | 30 days | `retentionPeriod` |
 
 DetectStackDrift also reads the live configuration of resources in those stacks. Grant those Describe/Get permissions through `grantReadOnlyAccess`, `additionalPolicyStatements`, or the public `role`.
 
@@ -107,8 +119,11 @@ import { Duration } from 'aws-cdk-lib';
 
 new CloudFormationStackDriftDetector(this, 'Detector', {
   notificationTopic: topic,
-  executionTimeout: Duration.hours(2),
+  executionTimeout: Duration.hours(6),
   retentionPeriod: Duration.days(14),
+  waitInterval: Duration.seconds(20),
+  maxStatusChecks: 40,
+  maxConcurrency: 10,
 });
 ```
 
@@ -195,7 +210,10 @@ These options apply to `CloudFormationStackDriftDetector` and `CloudFormationSta
 | `notificationTopic` | `sns.ITopic` | Yes | SNS topic that receives drift and failure notifications. The construct does not create a topic. |
 | `notificationTopicKey` | `kms.IKey` | No | Customer-managed KMS key that encrypts `notificationTopic`. Use with imported topics, where `grantPublish` cannot grant KMS. |
 | `targetResource` | `TargetResource` | No | Tag criteria used to select stacks. Requires a non-blank `tagKey` and at least one `tagValues` entry. Tagged stacks must also be in a stable status. If omitted, all stable stacks in the account and region are inspected. |
-| `executionTimeout` | `Duration` | No | Maximum duration of a durable execution (default: `Duration.hours(1)`). |
+| `executionTimeout` | `Duration` | No | Maximum duration of a durable execution (default: `Duration.hours(12)`). |
+| `waitInterval` | `Duration` | No | Seconds between status checks after the first check. The first check runs immediately (default: `Duration.seconds(30)`). |
+| `maxStatusChecks` | `number` | No | Maximum status checks for one stack, including the first. The stack fails if detection is still `DETECTION_IN_PROGRESS` after this many checks (default: `20`). |
+| `maxConcurrency` | `number` | No | Maximum number of stacks detected at the same time (default: `5`). |
 | `retentionPeriod` | `Duration` | No | How long durable execution history is retained after completion (default: `Duration.days(30)`). |
 | `additionalPolicyStatements` | `iam.PolicyStatement[]` | No | Extra IAM statements attached to the detector Lambda role (for example resource Describe/Get). |
 | `grantReadOnlyAccess` | `ReadOnlyAccessGrant` | No | Attach AWS managed `ReadOnlyAccess` when set to `ReadOnlyAccessGrant.ENABLED` (default: `ReadOnlyAccessGrant.DISABLED`). |
@@ -223,6 +241,17 @@ See [API.md](./API.md).
 - Node.js `>= 20.0.0`
 - `aws-cdk-lib` `^2.232.0`
 - `constructs` `^10.5.1`
+
+## Troubleshooting
+
+A stack failure notification says detection timed out, and the invocation then fails:
+
+- The SNS `reason` includes the stack name, the last status, how many checks ran, and `maxStatusChecks`. Raise `maxStatusChecks` or `waitInterval` when the status is still `DETECTION_IN_PROGRESS`.
+- The invocation error lists failed stack names up to a cap. The function log `Drift detection failed` includes every failed name in `failedStacks`.
+
+The durable execution reaches `executionTimeout` before every stack is checked:
+
+- Raise `executionTimeout`, raise `maxConcurrency`, or set `targetResource` so fewer stacks are inspected. Time spent in durable waits is not part of the 15 minute Lambda invocation timeout.
 
 ## License
 

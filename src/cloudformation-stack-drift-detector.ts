@@ -8,9 +8,18 @@ import * as sns from 'aws-cdk-lib/aws-sns';
 import { ConstructResourceCriteria, ConstructResourceTagCriteria as TargetResource } from 'construct-resource-criteria';
 import { Construct } from 'constructs';
 import { DetectorFunction } from './funcs/detector-function';
+import {
+  DEFAULT_DETECTION_WAIT_INTERVAL_SECONDS,
+  DEFAULT_EXECUTION_TIMEOUT_HOURS,
+  DEFAULT_MAX_CONCURRENCY,
+  DEFAULT_MAX_STATUS_CHECKS,
+  DETECTION_MAX_STATUS_CHECKS_ENV,
+  DETECTION_WAIT_INTERVAL_SECONDS_ENV,
+  STACK_DETECTION_MAX_CONCURRENCY_ENV,
+} from './settings/consts';
 
 /** Default maximum duration of a durable execution. */
-const DEFAULT_EXECUTION_TIMEOUT = Duration.hours(1);
+const DEFAULT_EXECUTION_TIMEOUT = Duration.hours(DEFAULT_EXECUTION_TIMEOUT_HOURS);
 /** Default retention for durable execution history after completion. */
 const DEFAULT_RETENTION_PERIOD = Duration.days(30);
 /** Invoke timeout for a single Lambda worker. */
@@ -26,6 +35,34 @@ const DURABLE_EXECUTION_POLICY_NAME = 'service-role/AWSLambdaBasicDurableExecuti
  * `DETECTION_FAILED` or `NOT_CHECKED`.
  */
 const READ_ONLY_ACCESS_POLICY_NAME = 'ReadOnlyAccess';
+
+/**
+ * Returns the wait interval in whole seconds.
+ *
+ * @param waitInterval - Interval between status checks after the first check.
+ * @returns The interval in seconds.
+ * @throws When `waitInterval` is shorter than 1 second or includes a fraction of a second.
+ */
+const assertWholeSeconds = (waitInterval: Duration): number => {
+  const waitIntervalSeconds = waitInterval.toMilliseconds() / 1000;
+  if (!Number.isInteger(waitIntervalSeconds) || waitIntervalSeconds < 1) {
+    throw new Error('waitInterval must be a whole number of seconds greater than or equal to 1');
+  }
+  return waitIntervalSeconds;
+};
+
+/**
+ * Rejects a count that is not an integer greater than or equal to 1.
+ *
+ * @param value - Prop value to check.
+ * @param fieldName - Prop name included in the error.
+ * @throws When `value` is not an integer greater than or equal to 1.
+ */
+const assertPositiveInteger = (value: number, fieldName: string): void => {
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error(`${fieldName} must be an integer greater than or equal to 1`);
+  }
+};
 
 /**
  * Whether the detector role receives the AWS managed ReadOnlyAccess policy.
@@ -71,9 +108,29 @@ export interface CloudFormationStackDriftDetectorProps {
   /**
    * Maximum duration of a durable execution.
    *
-   * @default Duration.hours(1)
+   * @default Duration.hours(12)
    */
   readonly executionTimeout?: Duration;
+  /**
+   * Seconds between drift detection status checks after the first check.
+   * The first check runs immediately.
+   *
+   * @default Duration.seconds(30)
+   */
+  readonly waitInterval?: Duration;
+  /**
+   * Maximum DescribeStackDriftDetectionStatus calls for one stack, including the first check.
+   * The stack fails when detection is still `DETECTION_IN_PROGRESS` after this many checks.
+   *
+   * @default 20
+   */
+  readonly maxStatusChecks?: number;
+  /**
+   * Maximum number of stacks detected at the same time.
+   *
+   * @default 5
+   */
+  readonly maxConcurrency?: number;
   /**
    * How long durable execution history is retained after completion.
    *
@@ -134,11 +191,21 @@ export class CloudFormationStackDriftDetector extends Construct {
       });
     }
 
+    const waitInterval = props.waitInterval ?? Duration.seconds(DEFAULT_DETECTION_WAIT_INTERVAL_SECONDS);
+    const maxStatusChecks = props.maxStatusChecks ?? DEFAULT_MAX_STATUS_CHECKS;
+    const maxConcurrency = props.maxConcurrency ?? DEFAULT_MAX_CONCURRENCY;
+    const waitIntervalSeconds = assertWholeSeconds(waitInterval);
+    assertPositiveInteger(maxStatusChecks, 'maxStatusChecks');
+    assertPositiveInteger(maxConcurrency, 'maxConcurrency');
+
     this.notificationTopic = props.notificationTopic;
 
     const durableFunction = new DetectorFunction(this, 'Function', {
       environment: {
         NOTIFICATION_TOPIC_ARN: this.notificationTopic.topicArn,
+        [DETECTION_WAIT_INTERVAL_SECONDS_ENV]: String(waitIntervalSeconds),
+        [DETECTION_MAX_STATUS_CHECKS_ENV]: String(maxStatusChecks),
+        [STACK_DETECTION_MAX_CONCURRENCY_ENV]: String(maxConcurrency),
       },
       durableConfig: {
         executionTimeout: props.executionTimeout ?? DEFAULT_EXECUTION_TIMEOUT,

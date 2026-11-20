@@ -17,6 +17,9 @@ describe('CloudFormationStackDriftDetectorStack', () => {
       env: TEST_ENV,
       notificationTopic: topic,
       executionTimeout: Duration.hours(2),
+      waitInterval: Duration.seconds(45),
+      maxStatusChecks: 10,
+      maxConcurrency: 8,
       grantReadOnlyAccess: ReadOnlyAccessGrant.ENABLED,
       targetResource: {
         tagKey: 'DriftDetection',
@@ -29,6 +32,13 @@ describe('CloudFormationStackDriftDetectorStack', () => {
     template.hasResourceProperties('AWS::Lambda::Function', Match.objectLike({
       DurableConfig: Match.objectLike({
         ExecutionTimeout: 7200,
+      }),
+      Environment: Match.objectLike({
+        Variables: Match.objectLike({
+          DETECTION_WAIT_INTERVAL_SECONDS: '45',
+          DETECTION_MAX_STATUS_CHECKS: '10',
+          STACK_DETECTION_MAX_CONCURRENCY: '8',
+        }),
       }),
     }));
     template.hasResourceProperties('AWS::Events::Rule', Match.objectLike({
