@@ -10,6 +10,7 @@ const project = new ProjenCdkConstructLibrary({
   keywords: ['aws', 'cdk', 'construct', 'cloudformation', 'stack', 'drift', 'detector', 'sns'],
   peerDeps: [
     'construct-resource-criteria@^0.1.5',
+    'lambda-failure-detector@^0.3.1',
   ],
   devDeps: [
     '@gammarers/projen-projects@^0.6.2',

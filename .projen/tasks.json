@@ -458,7 +458,8 @@
             "typescript",
             "aws-cdk-lib",
             "construct-resource-criteria",
-            "constructs"
+            "constructs",
+            "lambda-failure-detector"
           ]
         },
         {

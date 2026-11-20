@@ -13,3 +13,5 @@ export const DETECTION_WAIT_INTERVAL_SECONDS_ENV = 'DETECTION_WAIT_INTERVAL_SECO
 export const DETECTION_MAX_STATUS_CHECKS_ENV = 'DETECTION_MAX_STATUS_CHECKS';
 /** Lambda environment variable for how many stacks are detected at once. */
 export const STACK_DETECTION_MAX_CONCURRENCY_ENV = 'STACK_DETECTION_MAX_CONCURRENCY';
+/** CloudWatch Logs token emitted when a drift-detection run fails. */
+export const DRIFT_DETECTION_FAILED = 'DriftDetectionFailed';

@@ -90,4 +90,27 @@ describe('CloudFormationStackDriftDetectorStack', () => {
       State: 'DISABLED',
     });
   });
+
+  it('forwards failure detection', () => {
+    const app = new App();
+    const topicStack = new Stack(app, 'TopicStack', { env: TEST_ENV });
+    const topic = new sns.Topic(topicStack, 'Notifications');
+    const stack = new CloudFormationStackDriftDetectorStack(app, 'DetectorStack', {
+      env: TEST_ENV,
+      notificationTopic: topic,
+      failureDetection: {
+        enabled: true,
+        alarm: {
+          topic,
+        },
+      },
+    });
+    const template = Template.fromStack(stack);
+
+    template.resourceCountIs('AWS::Logs::LogGroup', 1);
+    template.hasResourceProperties('AWS::CloudWatch::Alarm', Match.objectLike({
+      MetricName: 'DriftDetectionFailed',
+      Namespace: 'CloudFormationStackDriftDetector',
+    }));
+  });
 });

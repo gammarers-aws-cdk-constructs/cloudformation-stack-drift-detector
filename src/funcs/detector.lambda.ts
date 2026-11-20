@@ -21,6 +21,7 @@ import {
   DEFAULT_MAX_STATUS_CHECKS,
   DETECTION_MAX_STATUS_CHECKS_ENV,
   DETECTION_WAIT_INTERVAL_SECONDS_ENV,
+  DRIFT_DETECTION_FAILED,
   STACK_DETECTION_MAX_CONCURRENCY_ENV,
 } from '../settings/consts';
 import {
@@ -483,6 +484,35 @@ export const processDriftDetection = async (
   event: DriftDetectionEvent,
   context: DurableContext,
 ): Promise<DriftDetectionCounts> => {
+  let failedStackNames: string[] | undefined;
+  try {
+    return await runDriftDetection(event, context, (stackNames) => {
+      failedStackNames = stackNames;
+    });
+  } catch (error) {
+    console.error(DRIFT_DETECTION_FAILED, {
+      stackNames: failedStackNames,
+      message: getErrorMessage(error),
+    });
+    throw error;
+  }
+};
+
+/**
+ * Runs one drift-detection pass.
+ * The caller logs {@link DRIFT_DETECTION_FAILED} when this function throws.
+ *
+ * @param event - Optional tag filter used to select stacks.
+ * @param context - Durable execution context for steps and waits.
+ * @param recordFailedStackNames - Receives the failed stack names before the aggregate error is thrown.
+ * @returns Succeeded and failed counts when every stack succeeds. `failed` is 0.
+ * @throws When any stack fails, or when the invocation settings are invalid.
+ */
+const runDriftDetection = async (
+  event: DriftDetectionEvent,
+  context: DurableContext,
+  recordFailedStackNames: (stackNames: string[]) => void,
+): Promise<DriftDetectionCounts> => {
   const topicArn = getNotificationTopicArn();
   const settings = readDetectionRunSettings();
   const stackNames = await context.step('get-target-stack-names', async () => {
@@ -493,13 +523,19 @@ export const processDriftDetection = async (
     try {
       await processStackDrift(stackName, topicArn, itemContext, settings);
     } catch (error) {
-      console.error(`Drift detection failed for stack ${stackName}`, error);
+      console.error('Drift detection failed for stack', {
+        stackName,
+        message: getErrorMessage(error),
+      });
 
       try {
         await publishDetectionFailure(stackName, topicArn, getErrorMessage(error), itemContext);
       } catch (notifyError) {
         // A failed notification must not skip the remaining stacks.
-        console.error(`Failed to publish drift detection failure for stack ${stackName}`, notifyError);
+        console.error('Failed to publish drift detection failure', {
+          stackName,
+          message: getErrorMessage(notifyError),
+        });
       }
 
       throw error;
@@ -539,11 +575,7 @@ export const processDriftDetection = async (
     ...batch.started().map((item) => item.index),
   ]);
 
-  console.error('Drift detection failed', {
-    failedStacks: failedNames,
-    unstartedStacks: unstartedNames,
-  });
-
+  recordFailedStackNames(failedNames);
   throw new Error(formatDetectionFailureMessage({
     failedNames,
     unstartedCount: unstartedNames.length,

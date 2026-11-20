@@ -35,6 +35,7 @@ export class CloudFormationStackDriftDetectorStack extends Stack {
       retentionPeriod: props.retentionPeriod,
       schedule: props.schedule,
       scheduleState: props.scheduleState,
+      failureDetection: props.failureDetection,
     });
   }
 }

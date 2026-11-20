@@ -1,12 +1,14 @@
-import { ArnFormat, Duration, Stack, TimeZone } from 'aws-cdk-lib';
+import { ArnFormat, Duration, RemovalPolicy, Stack, TimeZone } from 'aws-cdk-lib';
 import { ManagedPolicy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { type IKey } from 'aws-cdk-lib/aws-kms';
 import { Alias } from 'aws-cdk-lib/aws-lambda';
+import { FilterPattern, LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Schedule, ScheduleExpression, ScheduleTargetInput } from 'aws-cdk-lib/aws-scheduler';
 import { LambdaInvoke } from 'aws-cdk-lib/aws-scheduler-targets';
 import { type ITopic } from 'aws-cdk-lib/aws-sns';
 import { ConstructResourceCriteria, ConstructResourceTagCriteria as TargetResource } from 'construct-resource-criteria';
 import { Construct } from 'constructs';
+import { LambdaFailureDetector, type LogFailureFilter } from 'lambda-failure-detector';
 import { DetectorFunction } from './funcs/detector-function';
 import {
   DEFAULT_DETECTION_WAIT_INTERVAL_SECONDS,
@@ -15,6 +17,7 @@ import {
   DEFAULT_MAX_STATUS_CHECKS,
   DETECTION_MAX_STATUS_CHECKS_ENV,
   DETECTION_WAIT_INTERVAL_SECONDS_ENV,
+  DRIFT_DETECTION_FAILED,
   STACK_DETECTION_MAX_CONCURRENCY_ENV,
 } from './settings/consts';
 
@@ -37,6 +40,21 @@ const DURABLE_EXECUTION_POLICY_NAME = 'service-role/AWSLambdaBasicDurableExecuti
  * `DETECTION_FAILED` or `NOT_CHECKED`.
  */
 const READ_ONLY_ACCESS_POLICY_NAME = 'ReadOnlyAccess';
+/** Metric namespace for detector failure alarms. */
+const FAILURE_METRIC_NAMESPACE = 'CloudFormationStackDriftDetector';
+
+/**
+ * Log filters that alarm when a drift-detection run fails.
+ * The filter matches {@link DRIFT_DETECTION_FAILED}.
+ */
+const DRIFT_DETECTION_LOG_FILTERS: LogFailureFilter[] = [
+  {
+    id: 'DriftDetectionFailed',
+    filterPattern: FilterPattern.literal(`"${DRIFT_DETECTION_FAILED}"`),
+    metricNamespace: FAILURE_METRIC_NAMESPACE,
+    metricName: DRIFT_DETECTION_FAILED,
+  },
+];
 
 /**
  * Returns the wait interval in whole seconds.
@@ -104,6 +122,34 @@ export enum DetectionScheduleState {
    * EventBridge Scheduler does not run the detector.
    */
   DISABLED = 'DISABLED',
+}
+
+/**
+ * Where failure alarms send notifications.
+ */
+export interface CloudFormationStackDriftDetectorFailureAlarmProps {
+  /**
+   * Existing SNS topic that receives alarm notifications.
+   * When omitted, the alarms have no SNS action.
+   */
+  readonly topic?: ITopic;
+}
+
+/**
+ * Opt-in CloudWatch alarms for detector failures.
+ * Alarms are created only when {@link CloudFormationStackDriftDetectorFailureDetectionProps.enabled} is true.
+ */
+export interface CloudFormationStackDriftDetectorFailureDetectionProps {
+  /**
+   * Create CloudWatch alarms for platform errors and failed drift-detection runs.
+   *
+   * @default false
+   */
+  readonly enabled?: boolean;
+  /**
+   * Where failure alarms send notifications.
+   */
+  readonly alarm?: CloudFormationStackDriftDetectorFailureAlarmProps;
 }
 
 /**
@@ -179,6 +225,14 @@ export interface CloudFormationStackDriftDetectorProps {
    * @default {@link DetectionScheduleState.ENABLED}
    */
   readonly scheduleState?: DetectionScheduleState;
+  /**
+   * CloudWatch alarms for detector failures.
+   * Alarms and the detector log group are created only when
+   * {@link CloudFormationStackDriftDetectorFailureDetectionProps.enabled} is true.
+   *
+   * @default - failure alarms are off
+   */
+  readonly failureDetection?: CloudFormationStackDriftDetectorFailureDetectionProps;
 }
 
 /**
@@ -216,7 +270,16 @@ export class CloudFormationStackDriftDetector extends Construct {
     assertPositiveInteger(maxStatusChecks, 'maxStatusChecks');
     assertPositiveInteger(maxConcurrency, 'maxConcurrency');
 
+    const failureDetectionEnabled = props.failureDetection?.enabled === true;
+    const logGroup = failureDetectionEnabled
+      ? new LogGroup(this, 'LogGroup', {
+        retention: RetentionDays.ONE_YEAR,
+        removalPolicy: RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+      })
+      : undefined;
+
     const durableFunction = new DetectorFunction(this, 'Function', {
+      ...(logGroup ? { logGroup } : {}),
       environment: {
         NOTIFICATION_TOPIC_ARN: props.notificationTopic.topicArn,
         [DETECTION_WAIT_INTERVAL_SECONDS_ENV]: String(waitIntervalSeconds),
@@ -272,6 +335,19 @@ export class CloudFormationStackDriftDetector extends Construct {
 
     props.notificationTopic.grantPublish(durableFunction);
     props.notificationTopicKey?.grantEncryptDecrypt(durableFunction);
+
+    if (logGroup) {
+      new LambdaFailureDetector(this, 'FailureDetection', {
+        lambdaFunction: durableFunction,
+        log: {
+          group: logGroup,
+          filters: DRIFT_DETECTION_LOG_FILTERS,
+        },
+        alarm: {
+          topic: props.failureDetection?.alarm?.topic,
+        },
+      });
+    }
 
     // Durable execution accepts a published alias as its invoke target.
     const live = new Alias(this, 'Live', {

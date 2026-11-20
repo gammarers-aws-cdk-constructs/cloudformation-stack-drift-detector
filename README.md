@@ -148,6 +148,24 @@ new CloudFormationStackDriftDetector(this, 'Detector', {
 });
 ```
 
+### Alarm on detector failures
+
+Failure alarms are off until `failureDetection.enabled` is true. The construct then creates a one-year log group and CloudWatch alarms for Lambda errors and for the `DriftDetectionFailed` log line. Pass an existing topic when those alarms should notify. The construct does not create that topic.
+
+```typescript
+import { CloudFormationStackDriftDetector } from 'cloudformation-stack-drift-detector';
+
+new CloudFormationStackDriftDetector(this, 'Detector', {
+  notificationTopic: topic,
+  failureDetection: {
+    enabled: true,
+    alarm: {
+      topic: alarmTopic,
+    },
+  },
+});
+```
+
 ### Publish to a KMS-encrypted imported SNS topic
 
 When the topic is imported with `fromTopicArn`, `grantPublish` cannot see the encryption key. Pass `notificationTopicKey` so the detector can call `kms:GenerateDataKey` and `kms:Decrypt`:
@@ -207,6 +225,14 @@ These options apply to `CloudFormationStackDriftDetector` and `CloudFormationSta
 | `retentionPeriod` | `Duration` | No | How long durable execution history is retained after completion (default: `Duration.days(30)`). |
 | `schedule` | `ScheduleExpression` | No | Cron that replaces the default, including its time zone. Rate expressions are rejected (default: 09:12 UTC every day, `cron(12 9 * * ? *)`). |
 | `scheduleState` | `DetectionScheduleState` | No | Whether the EventBridge Scheduler schedule is enabled (default: `DetectionScheduleState.ENABLED`). |
+| `failureDetection` | `CloudFormationStackDriftDetectorFailureDetectionProps` | No | Opt-in CloudWatch alarms for detector failures. Alarms are created only when `enabled` is true. |
+
+### CloudFormationStackDriftDetectorFailureDetectionProps
+
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `enabled` | `boolean` | No | Create the detector log group and failure alarms when true (default: `false`). |
+| `alarm` | `CloudFormationStackDriftDetectorFailureAlarmProps` | No | Optional alarm notification settings. `alarm.topic` is an existing SNS topic. When omitted, the alarms have no SNS action. |
 
 ### DetectionScheduleState
 
@@ -232,13 +258,14 @@ See [API.md](./API.md).
 - `aws-cdk-lib` `^2.232.0`
 - `constructs` `^10.5.1`
 - `construct-resource-criteria` `^0.1.5`
+- `lambda-failure-detector` `^0.3.1`
 
 ## Troubleshooting
 
 A stack failure notification says detection timed out, and the invocation then fails:
 
 - The SNS `reason` includes the stack name, the last status, how many checks ran, and `maxStatusChecks`. Raise `maxStatusChecks` or `waitInterval` when the status is still `DETECTION_IN_PROGRESS`.
-- The invocation error lists failed stack names up to a cap. The function log `Drift detection failed` includes every failed name in `failedStacks`.
+- The invocation error lists failed stack names up to a cap. The function log `DriftDetectionFailed` includes those names in `stackNames` and the error message.
 
 The durable execution reaches `executionTimeout` before every stack is checked:
 

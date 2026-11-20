@@ -125,6 +125,11 @@ describe('default', () => {
     template.resourceCountIs('AWS::Lambda::Alias', 1);
   });
 
+  it('should not create failure alarms', () => {
+    template.resourceCountIs('AWS::Logs::LogGroup', 0);
+    template.resourceCountIs('AWS::CloudWatch::Alarm', 0);
+  });
+
   it('should attach the AWS managed ReadOnlyAccess policy', () => {
     template.hasResourceProperties('AWS::IAM::Role', Match.objectLike({
       ManagedPolicyArns: Match.arrayWith([

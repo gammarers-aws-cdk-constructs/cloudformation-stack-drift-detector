@@ -15,6 +15,7 @@ import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { processDriftDetection, DriftDetectionEvent } from '../src/funcs/detector.lambda';
+import { DRIFT_DETECTION_FAILED } from '../src/settings/consts';
 
 const cloudFormationMock = mockClient(CloudFormationClient);
 const taggingMock = mockClient(ResourceGroupsTaggingAPIClient);
@@ -476,12 +477,15 @@ describe('processDriftDetection', () => {
       'Drift detection failed for 1 stack: PlainStack',
     );
 
-    expect(errorSpy).toHaveBeenCalledWith(
-      'Drift detection failed for stack PlainStack',
-      expect.objectContaining({
-        message: 'Drift detection failed for stack PlainStack: access denied',
-      }),
-    );
+    expect(errorSpy).toHaveBeenCalledWith('Drift detection failed for stack', {
+      stackName: 'PlainStack',
+      message: 'Drift detection failed for stack PlainStack: access denied',
+    });
+    expect(errorSpy).toHaveBeenCalledWith(DRIFT_DETECTION_FAILED, {
+      stackNames: ['PlainStack'],
+      message: 'Drift detection failed for 1 stack: PlainStack',
+    });
+    expect(JSON.stringify(errorSpy.mock.calls)).not.toContain(TOPIC_ARN);
     expect(snsMock).toHaveReceivedCommandTimes(PublishCommand, 1);
     expect(publishedMessages()[0]).toEqual({
       stackName: 'PlainStack',
@@ -502,12 +506,10 @@ describe('processDriftDetection', () => {
       'Drift detection failed for 1 stack: PlainStack',
     );
 
-    expect(errorSpy).toHaveBeenCalledWith(
-      'Drift detection failed for stack PlainStack',
-      expect.objectContaining({
-        message: 'DetectStackDrift did not return a detection ID for stack PlainStack',
-      }),
-    );
+    expect(errorSpy).toHaveBeenCalledWith('Drift detection failed for stack', {
+      stackName: 'PlainStack',
+      message: 'DetectStackDrift did not return a detection ID for stack PlainStack',
+    });
     expect(snsMock).toHaveReceivedCommandTimes(PublishCommand, 1);
     expect(publishedMessages()[0]).toEqual({
       stackName: 'PlainStack',
@@ -582,10 +584,10 @@ describe('processDriftDetection', () => {
       'Drift detection failed for 1 stack: FailingStack',
     );
 
-    expect(errorSpy).toHaveBeenCalledWith(
-      'Failed to publish drift detection failure for stack FailingStack',
-      expect.objectContaining({ message: 'sns unavailable' }),
-    );
+    expect(errorSpy).toHaveBeenCalledWith('Failed to publish drift detection failure', {
+      stackName: 'FailingStack',
+      message: 'sns unavailable',
+    });
     expect(snsMock).toHaveReceivedCommandTimes(PublishCommand, 2);
     expect(publishedMessages()[1].stackName).toBe('DriftedStack');
     errorSpy.mockRestore();
@@ -621,13 +623,16 @@ describe('processDriftDetection', () => {
     cloudFormationMock.on(ListStacksCommand).resolves({
       StackSummaries: [{ CreationTime: STACK_DATE, StackStatus: 'CREATE_COMPLETE' }],
     });
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
     await expect(processDriftDetection({}, createFakeDurableContext())).resolves.toEqual({
       succeeded: 0,
       failed: 0,
     });
 
+    expect(JSON.stringify(errorSpy.mock.calls)).not.toContain(DRIFT_DETECTION_FAILED);
     expect(cloudFormationMock).not.toHaveReceivedCommand(DetectStackDriftCommand);
+    errorSpy.mockRestore();
   });
 
   it('treats a missing stack summary list as no stacks', async () => {
@@ -813,10 +818,11 @@ describe('processDriftDetection', () => {
       stackName: 'SlowStack',
       reason: 'Drift detection timed out for stack SlowStack: status is DETECTION_IN_PROGRESS, checked 2 times, expected completion within 2 checks',
     });
-    expect(errorSpy).toHaveBeenCalledWith('Drift detection failed', {
-      failedStacks: ['SlowStack'],
-      unstartedStacks: [],
+    expect(errorSpy).toHaveBeenCalledWith(DRIFT_DETECTION_FAILED, {
+      stackNames: ['SlowStack'],
+      message: 'Drift detection failed for 1 stack: SlowStack',
     });
+    expect(JSON.stringify(errorSpy.mock.calls)).not.toContain(TOPIC_ARN);
     errorSpy.mockRestore();
   });
 
@@ -825,11 +831,19 @@ describe('processDriftDetection', () => {
     async (value) => {
       process.env.DETECTION_MAX_STATUS_CHECKS = value;
 
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
       await expect(processDriftDetection({}, createFakeDurableContext())).rejects.toThrow(
         'DETECTION_MAX_STATUS_CHECKS must be an integer greater than or equal to 1',
       );
 
+      expect(errorSpy).toHaveBeenCalledWith(DRIFT_DETECTION_FAILED, {
+        stackNames: undefined,
+        message: 'DETECTION_MAX_STATUS_CHECKS must be an integer greater than or equal to 1',
+      });
+      expect(JSON.stringify(errorSpy.mock.calls)).not.toContain(TOPIC_ARN);
       expect(cloudFormationMock).not.toHaveReceivedCommand(ListStacksCommand);
+      errorSpy.mockRestore();
     },
   );
 });

@@ -1112,6 +1112,88 @@ Whether termination protection is enabled for this stack.
 
 ## Structs <a name="Structs" id="Structs"></a>
 
+### CloudFormationStackDriftDetectorFailureAlarmProps <a name="CloudFormationStackDriftDetectorFailureAlarmProps" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureAlarmProps"></a>
+
+Where failure alarms send notifications.
+
+#### Initializer <a name="Initializer" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureAlarmProps.Initializer"></a>
+
+```typescript
+import { CloudFormationStackDriftDetectorFailureAlarmProps } from 'cloudformation-stack-drift-detector'
+
+const cloudFormationStackDriftDetectorFailureAlarmProps: CloudFormationStackDriftDetectorFailureAlarmProps = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureAlarmProps.property.topic">topic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | Existing SNS topic that receives alarm notifications. |
+
+---
+
+##### `topic`<sup>Optional</sup> <a name="topic" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureAlarmProps.property.topic"></a>
+
+```typescript
+public readonly topic: ITopic;
+```
+
+- *Type:* aws-cdk-lib.aws_sns.ITopic
+
+Existing SNS topic that receives alarm notifications.
+
+When omitted, the alarms have no SNS action.
+
+---
+
+### CloudFormationStackDriftDetectorFailureDetectionProps <a name="CloudFormationStackDriftDetectorFailureDetectionProps" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps"></a>
+
+Opt-in CloudWatch alarms for detector failures.
+
+Alarms are created only when {@link CloudFormationStackDriftDetectorFailureDetectionProps.enabled} is true.
+
+#### Initializer <a name="Initializer" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps.Initializer"></a>
+
+```typescript
+import { CloudFormationStackDriftDetectorFailureDetectionProps } from 'cloudformation-stack-drift-detector'
+
+const cloudFormationStackDriftDetectorFailureDetectionProps: CloudFormationStackDriftDetectorFailureDetectionProps = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps.property.alarm">alarm</a></code> | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureAlarmProps">CloudFormationStackDriftDetectorFailureAlarmProps</a></code> | Where failure alarms send notifications. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps.property.enabled">enabled</a></code> | <code>boolean</code> | Create CloudWatch alarms for platform errors and failed drift-detection runs. |
+
+---
+
+##### `alarm`<sup>Optional</sup> <a name="alarm" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps.property.alarm"></a>
+
+```typescript
+public readonly alarm: CloudFormationStackDriftDetectorFailureAlarmProps;
+```
+
+- *Type:* <a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureAlarmProps">CloudFormationStackDriftDetectorFailureAlarmProps</a>
+
+Where failure alarms send notifications.
+
+---
+
+##### `enabled`<sup>Optional</sup> <a name="enabled" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps.property.enabled"></a>
+
+```typescript
+public readonly enabled: boolean;
+```
+
+- *Type:* boolean
+- *Default:* false
+
+Create CloudWatch alarms for platform errors and failed drift-detection runs.
+
+---
+
 ### CloudFormationStackDriftDetectorProps <a name="CloudFormationStackDriftDetectorProps" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps"></a>
 
 Properties for {@link CloudFormationStackDriftDetector}.
@@ -1130,6 +1212,7 @@ const cloudFormationStackDriftDetectorProps: CloudFormationStackDriftDetectorPro
 | --- | --- | --- |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic that receives drift and failure notifications. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.executionTimeout">executionTimeout</a></code> | <code>aws-cdk-lib.Duration</code> | Maximum duration of a durable execution. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.failureDetection">failureDetection</a></code> | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps">CloudFormationStackDriftDetectorFailureDetectionProps</a></code> | CloudWatch alarms for detector failures. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.maxConcurrency">maxConcurrency</a></code> | <code>number</code> | Maximum number of stacks detected at the same time. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.maxStatusChecks">maxStatusChecks</a></code> | <code>number</code> | Maximum DescribeStackDriftDetectionStatus calls for one stack, including the first check. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.notificationTopicKey">notificationTopicKey</a></code> | <code>aws-cdk-lib.aws_kms.IKey</code> | Customer-managed KMS key that encrypts {@link CloudFormationStackDriftDetectorProps.notificationTopic}. |
@@ -1163,6 +1246,22 @@ public readonly executionTimeout: Duration;
 - *Default:* Duration.hours(12)
 
 Maximum duration of a durable execution.
+
+---
+
+##### `failureDetection`<sup>Optional</sup> <a name="failureDetection" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorProps.property.failureDetection"></a>
+
+```typescript
+public readonly failureDetection: CloudFormationStackDriftDetectorFailureDetectionProps;
+```
+
+- *Type:* <a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps">CloudFormationStackDriftDetectorFailureDetectionProps</a>
+- *Default:* failure alarms are off
+
+CloudWatch alarms for detector failures.
+
+Alarms and the detector log group are created only when
+{@link CloudFormationStackDriftDetectorFailureDetectionProps.enabled} is true.
 
 ---
 
@@ -1304,6 +1403,7 @@ const cloudFormationStackDriftDetectorStackProps: CloudFormationStackDriftDetect
 | --- | --- | --- |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.notificationTopic">notificationTopic</a></code> | <code>aws-cdk-lib.aws_sns.ITopic</code> | SNS topic that receives drift and failure notifications. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.executionTimeout">executionTimeout</a></code> | <code>aws-cdk-lib.Duration</code> | Maximum duration of a durable execution. |
+| <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.failureDetection">failureDetection</a></code> | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps">CloudFormationStackDriftDetectorFailureDetectionProps</a></code> | CloudWatch alarms for detector failures. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.maxConcurrency">maxConcurrency</a></code> | <code>number</code> | Maximum number of stacks detected at the same time. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.maxStatusChecks">maxStatusChecks</a></code> | <code>number</code> | Maximum DescribeStackDriftDetectionStatus calls for one stack, including the first check. |
 | <code><a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.notificationTopicKey">notificationTopicKey</a></code> | <code>aws-cdk-lib.aws_kms.IKey</code> | Customer-managed KMS key that encrypts {@link CloudFormationStackDriftDetectorProps.notificationTopic}. |
@@ -1349,6 +1449,22 @@ public readonly executionTimeout: Duration;
 - *Default:* Duration.hours(12)
 
 Maximum duration of a durable execution.
+
+---
+
+##### `failureDetection`<sup>Optional</sup> <a name="failureDetection" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStackProps.property.failureDetection"></a>
+
+```typescript
+public readonly failureDetection: CloudFormationStackDriftDetectorFailureDetectionProps;
+```
+
+- *Type:* <a href="#cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorFailureDetectionProps">CloudFormationStackDriftDetectorFailureDetectionProps</a>
+- *Default:* failure alarms are off
+
+CloudWatch alarms for detector failures.
+
+Alarms and the detector log group are created only when
+{@link CloudFormationStackDriftDetectorFailureDetectionProps.enabled} is true.
 
 ---
 
