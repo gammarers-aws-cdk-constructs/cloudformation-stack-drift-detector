@@ -16,6 +16,11 @@
       "type": "build"
     },
     {
+      "name": "@aws/durable-execution-sdk-js-testing",
+      "version": "^1.4.0",
+      "type": "build"
+    },
+    {
       "name": "@aws/durable-execution-sdk-js",
       "version": "^2.3.0",
       "type": "build"

@@ -87,11 +87,11 @@ const createAwsSdkClientConfig = () => {
 };
 
 /** Shared CloudFormation client for drift detection APIs. */
-const cloudFormation = new CloudFormationClient(createAwsSdkClientConfig());
+export const cloudFormation = new CloudFormationClient(createAwsSdkClientConfig());
 /** Shared tagging client used to resolve stacks by tag. */
-const resourceGroupsTagging = new ResourceGroupsTaggingAPIClient(createAwsSdkClientConfig());
+export const resourceGroupsTagging = new ResourceGroupsTaggingAPIClient(createAwsSdkClientConfig());
 /** Shared SNS client used to publish drift notifications. */
-const sns = new SNSClient(createAwsSdkClientConfig());
+export const sns = new SNSClient(createAwsSdkClientConfig());
 
 /**
  * EventBridge input that selects stacks for drift detection.
@@ -432,16 +432,14 @@ export interface DriftDetectionCounts {
 }
 
 /**
- * Returns a message for a caught detection failure.
+ * Returns the message from a caught detection failure.
+ * Durable steps surface a thrown value as an Error before this runs.
  *
  * @param error - Value thrown while detecting drift for one stack.
- * @returns The error message, or its string form when it is not an Error.
+ * @returns The error message.
  */
 const getErrorMessage = (error: unknown): string => {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return String(error);
+  return (error as Error).message;
 };
 
 /**
@@ -516,7 +514,7 @@ const runDriftDetection = async (
   const topicArn = getNotificationTopicArn();
   const settings = readDetectionRunSettings();
   const stackNames = await context.step('get-target-stack-names', async () => {
-    return getTargetStackNames(event ?? {});
+    return getTargetStackNames(event);
   });
 
   const detectStack = async (itemContext: DurableContext, stackName: string): Promise<void> => {

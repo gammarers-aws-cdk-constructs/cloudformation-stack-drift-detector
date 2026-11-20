@@ -15,6 +15,7 @@ const project = new ProjenCdkConstructLibrary({
   devDeps: [
     '@gammarers/projen-projects@^0.6.2',
     '@aws/durable-execution-sdk-js@^2.3.0',
+    '@aws/durable-execution-sdk-js-testing@^1.4.0',
     '@aws-sdk/client-cloudformation@^3.1116.0',
     '@aws-sdk/client-resource-groups-tagging-api@^3.1116.0',
     '@aws-sdk/client-sns@^3.1116.0',
