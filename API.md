@@ -4,6 +4,8 @@
 
 ### CloudFormationStackDriftDetector <a name="CloudFormationStackDriftDetector" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetector"></a>
 
+- *Implements:* constructs.IConstruct, constructs.IDependable
+
 CDK construct that runs CloudFormation stack drift detection on an EventBridge Scheduler cron and publishes drifted stacks to SNS.
 
 The default schedule is 09:12 UTC every day. Pass `schedule` to replace it.
@@ -154,6 +156,8 @@ The tree node.
 
 
 ### CloudFormationStackDriftDetectorStack <a name="CloudFormationStackDriftDetectorStack" id="cloudformation-stack-drift-detector.CloudFormationStackDriftDetectorStack"></a>
+
+- *Implements:* constructs.IConstruct, constructs.IDependable, aws-cdk-lib.ITaggable
 
 CDK stack that deploys {@link CloudFormationStackDriftDetector}.
 
